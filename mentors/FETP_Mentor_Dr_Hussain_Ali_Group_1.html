@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FETP Mentor Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f0ede6;--surface:#faf9f6;--surface2:#f0ede6;
+  --border:#ddd9cf;--border-strong:#c4bfb2;
+  --text:#1c1a16;--text-2:#5c5849;--text-3:#9c9788;
+  --accent:#1e4d6b;--accent-bg:#e8f0f5;--accent-mid:#2d6e96;
+  --green:#2a5c3f;--green-bg:#e6f2eb;
+  --amber:#7a4f00;--amber-bg:#fdf3dc;
+  --red:#7a1e1e;--red-bg:#fdf0f0;
+  --radius:12px;--radius-sm:7px;
+  --shadow:0 1px 4px rgba(0,0,0,0.07);--shadow-md:0 6px 20px rgba(0,0,0,0.09);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.55;min-height:100vh}
+
+.header{background:var(--accent);color:#fff;padding:0 28px;display:flex;align-items:center;justify-content:space-between;height:58px;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,0.15)}
+.header-left{display:flex;align-items:center;gap:12px}
+.header-logo{font-size:17px;font-weight:600;color:#fff}
+.hd{width:1px;height:20px;background:rgba(255,255,255,.25)}
+.hu-label{font-size:10px;font-family:'DM Mono',monospace;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.5);line-height:1;margin-bottom:2px}
+.hu-name{font-size:13px;font-weight:500;color:#fff;line-height:1}
+.hsector{font-size:11px;font-family:'DM Mono',monospace;color:rgba(255,255,255,.5);padding:3px 9px;border-radius:20px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08)}
+.header-right{display:flex;align-items:center;gap:8px}
+.hbtn{padding:5px 12px;border-radius:var(--radius-sm);font-size:12px;font-family:'DM Sans',sans-serif;font-weight:500;cursor:pointer;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.12);color:#fff;transition:all .15s}
+.hbtn:hover{background:rgba(255,255,255,.22)}
+.hbtn.small{font-size:11px;padding:4px 9px;opacity:.75}
+.hbtn:disabled{opacity:.5;cursor:not-allowed}
+.sync-status{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-family:'DM Mono',monospace;color:rgba(255,255,255,.55);padding:3px 9px;border-radius:20px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.07)}
+.sync-dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.3);flex-shrink:0}
+.sync-dot.synced{background:#5cb85c}.sync-dot.syncing{background:#f0ad4e;animation:pulse 1s infinite}.sync-dot.error{background:#d9534f}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+.layout{display:flex;min-height:calc(100vh - 58px)}
+.sidebar{width:220px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);padding:16px 10px;position:sticky;top:58px;height:calc(100vh - 58px);overflow-y:auto;display:flex;flex-direction:column;gap:3px}
+.sb-label{font-size:10px;font-family:'DM Mono',monospace;letter-spacing:.1em;text-transform:uppercase;color:var(--text-3);padding:0 8px;margin:10px 0 4px}
+.sb-label:first-child{margin-top:0}
+.sb-btn{display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:var(--radius-sm);cursor:pointer;color:var(--text-2);font-size:13px;transition:all .15s;border:none;background:none;width:100%;text-align:left}
+.sb-btn:hover{background:var(--surface2);color:var(--text)}
+.sb-btn.active{background:var(--accent-bg);color:var(--accent);font-weight:500}
+.trainee-av{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;flex-shrink:0}
+.sb-info{flex:1;min-width:0}
+.sb-name{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sb-pct{font-size:10px;color:var(--text-3);font-family:'DM Mono',monospace}
+.sb-btn.active .sb-pct{color:var(--accent-mid)}
+.sb-pending-dot{width:7px;height:7px;border-radius:50%;background:var(--amber);flex-shrink:0}
+
+.main{flex:1;padding:22px 26px;min-width:0}
+
+/* Overview */
+.ov-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+.ov-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;box-shadow:var(--shadow)}
+.ov-label{font-size:10px;font-family:'DM Mono',monospace;letter-spacing:.06em;text-transform:uppercase;color:var(--text-3);margin-bottom:6px}
+.ov-val{font-size:22px;font-weight:600;color:var(--text);line-height:1}
+.ov-sub{font-size:11px;color:var(--text-3);margin-top:3px}
+
+/* Trainee detail */
+.trainee-header{display:flex;align-items:center;gap:14px;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--border)}
+.trainee-av-lg{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:600;flex-shrink:0}
+.trainee-header-name{font-size:20px;font-weight:600;color:var(--text);line-height:1.2}
+.trainee-header-meta{font-size:12px;color:var(--text-3);margin-top:2px}
+.trainee-header-right{margin-left:auto;text-align:right}
+.trainee-pct-big{font-size:28px;font-weight:600;color:var(--accent);line-height:1}
+.trainee-pct-label{font-size:11px;color:var(--text-3);margin-top:2px}
+
+.itabs{display:flex;gap:6px;margin-bottom:16px}
+.itab{padding:7px 16px;border-radius:20px;font-size:13px;font-family:'DM Sans',sans-serif;font-weight:500;cursor:pointer;border:1px solid var(--border-strong);background:var(--surface);color:var(--text-2);transition:all .15s}
+.itab:hover{border-color:var(--accent);color:var(--accent)}
+.itab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+/* Activity cards */
+.act-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:12px;overflow:hidden;box-shadow:var(--shadow)}
+.act-strip{height:3px;background:var(--border)}
+.act-strip-fill{height:3px;background:var(--accent);transition:width .3s}
+.act-head{display:flex;align-items:center;gap:10px;padding:12px 16px;cursor:pointer;background:var(--surface);transition:background .15s;flex-wrap:wrap}
+.act-head:hover{background:var(--surface2)}
+.act-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.act-title{font-size:13px;font-weight:500;color:var(--text);flex:1;min-width:140px}
+.act-pct{font-size:12px;color:var(--text-3);font-family:'DM Mono',monospace}
+.mini-bar{width:60px;height:4px;background:var(--border);border-radius:2px;overflow:hidden;flex-shrink:0}
+.mini-fill{height:4px;background:var(--accent);border-radius:2px}
+.act-badge{font-size:11px;padding:2px 8px;border-radius:20px;font-weight:500;white-space:nowrap}
+.badge-review{background:var(--amber-bg);color:var(--amber)}
+.badge-scored{background:var(--green-bg);color:var(--green)}
+.badge-none{background:var(--surface2);color:var(--text-3)}
+.chevron{font-size:10px;color:var(--text-3);transition:transform .2s;user-select:none}
+.chevron.open{transform:rotate(180deg)}
+.act-body{display:none;border-top:1px solid var(--border)}
+.act-body.open{display:block}
+
+/* Phase */
+.phase-block{padding:14px 16px 0}
+.phase-tag-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.phase-tag{font-size:10px;font-family:'DM Mono',monospace;letter-spacing:.08em;text-transform:uppercase;font-weight:500;padding:2px 8px;border-radius:20px}
+.pt-before{background:var(--accent-bg);color:var(--accent)}
+.pt-during{background:var(--amber-bg);color:var(--amber)}
+.pt-after{background:var(--green-bg);color:var(--green)}
+.phase-count{font-size:11px;color:var(--text-3);font-family:'DM Mono',monospace}
+
+/* Item rows - mentor view */
+.item-row{border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:8px;overflow:hidden;background:var(--surface)}
+.item-row.has-submission{border-color:#c5d8f0}
+.item-main{display:flex;align-items:flex-start;gap:10px;padding:10px 12px}
+.item-check-icon{width:16px;height:16px;border-radius:3px;border:1.5px solid var(--border-strong);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px}
+.item-check-icon.done{background:var(--accent);border-color:var(--accent)}
+.item-text-wrap{flex:1;min-width:0}
+.item-text{font-size:13px;color:var(--text);line-height:1.5}
+.item-text.done{color:var(--text-3);text-decoration:line-through}
+.item-submission-tag{font-size:10px;color:var(--accent);font-family:'DM Mono',monospace;margin-top:2px}
+.item-score-row{display:flex;align-items:center;gap:6px;flex-shrink:0}
+.star-btn{font-size:16px;cursor:pointer;color:var(--border-strong);background:none;border:none;padding:0 1px;line-height:1;transition:color .1s}
+.star-btn:hover,.star-btn.filled{color:#f0a500}
+.item-score-val{font-size:11px;font-family:'DM Mono',monospace;color:var(--text-3);min-width:22px}
+
+.item-detail{display:none;border-top:1px solid var(--border);background:var(--surface2)}
+.item-detail.open{display:block}
+.item-detail-inner{padding:12px 14px;display:grid;gap:10px}
+
+.detail-section-label{font-size:10px;font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.06em;color:var(--text-3);margin-bottom:4px;font-weight:500}
+.mentee-comment-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;font-size:13px;color:var(--text-2);line-height:1.5;font-style:italic}
+.mentee-file-link{display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--accent);text-decoration:none;padding:4px 9px;border:1px solid var(--accent-bg);border-radius:var(--radius-sm);background:var(--accent-bg)}
+.mentee-file-link:hover{background:var(--accent);color:#fff}
+.remark-area{width:100%;font-size:13px;padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface);color:var(--text);resize:vertical;min-height:56px;font-family:'DM Sans',sans-serif;line-height:1.5;outline:none;transition:border-color .15s}
+.remark-area:focus{border-color:var(--accent)}
+.save-score-btn{padding:6px 14px;border-radius:var(--radius-sm);font-size:12px;font-family:'DM Sans',sans-serif;font-weight:500;cursor:pointer;border:none;background:var(--accent);color:#fff;transition:background .15s}
+.save-score-btn:hover{background:var(--accent-mid)}
+
+/* Empty / not submitted */
+.not-submitted-msg{padding:10px 14px;font-size:12px;color:var(--text-3);font-style:italic;border-top:1px solid var(--border)}
+
+/* Page */
+.page{display:none}.page.active{display:block}
+
+/* Overview trainee cards */
+.trainee-ov-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:10px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:all .15s;box-shadow:var(--shadow)}
+.trainee-ov-card:hover{border-color:var(--border-strong);box-shadow:var(--shadow-md)}
+.tov-stats{display:flex;gap:14px;margin-top:3px}
+.tov-stat{font-size:11px;color:var(--text-3);font-family:'DM Mono',monospace}
+.tov-stat span{color:var(--text-2);font-weight:500}
+.tov-pct{font-size:22px;font-weight:600;color:var(--accent);line-height:1}
+.pbar{height:4px;background:var(--border);border-radius:2px;overflow:hidden;width:80px}
+.pbar-fill{height:4px;background:var(--accent);border-radius:2px}
+.pending-badge{font-size:11px;padding:2px 8px;border-radius:20px;background:var(--amber-bg);color:var(--amber);font-weight:500}
+
+/* Setup */
+.setup-overlay{display:none;position:fixed;inset:0;background:var(--bg);z-index:500;align-items:center;justify-content:center}
+.setup-overlay.open{display:flex}
+.setup-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:32px 36px;width:100%;max-width:460px;box-shadow:var(--shadow-md);text-align:center}
+.setup-logo{font-size:24px;font-weight:600;color:var(--accent);margin-bottom:4px}
+.setup-sub{font-size:13px;color:var(--text-3);margin-bottom:22px}
+.setup-form{display:flex;flex-direction:column;gap:13px;text-align:left}
+.setup-label{font-size:12px;font-weight:500;color:var(--text-2);margin-bottom:4px;display:block}
+.setup-input,.setup-select{width:100%;font-size:14px;padding:9px 11px;border:1px solid var(--border-strong);border-radius:var(--radius-sm);background:var(--surface);color:var(--text);font-family:'DM Sans',sans-serif;outline:none;transition:border-color .15s}
+.setup-input:focus,.setup-select:focus{border-color:var(--accent)}
+.setup-trainee-list{display:flex;flex-direction:column;gap:6px;max-height:160px;overflow-y:auto}
+.setup-trainee-row{display:flex;gap:7px}
+.setup-remove{padding:8px 10px;border:1px solid var(--border-strong);border-radius:var(--radius-sm);background:var(--surface);color:var(--text-3);cursor:pointer;font-size:13px;flex-shrink:0;transition:all .15s}
+.setup-remove:hover{background:var(--red-bg);color:var(--red);border-color:var(--red)}
+.setup-add{font-size:12px;color:var(--accent);background:none;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;padding:0;text-align:left;margin-top:2px}
+.setup-add:hover{text-decoration:underline}
+.setup-btn{width:100%;padding:10px;border-radius:var(--radius-sm);font-size:14px;font-family:'DM Sans',sans-serif;font-weight:500;cursor:pointer;border:none;background:var(--accent);color:#fff;margin-top:4px;transition:background .15s}
+.setup-btn:hover{background:var(--accent-mid)}
+
+#toast{position:fixed;bottom:22px;right:22px;background:var(--text);color:#fff;padding:9px 16px;border-radius:var(--radius-sm);font-size:13px;font-family:'DM Sans',sans-serif;z-index:999;box-shadow:var(--shadow-md);opacity:0;transition:opacity .3s;pointer-events:none}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border-strong);border-radius:3px}
+</style>
+</head>
+<body>
+
+<!-- Setup -->
+<div class="setup-overlay" id="setupScreen">
+  <div class="setup-card">
+    <div class="setup-logo">FETP Mentor</div>
+    <div class="setup-sub">27th Cohort · FETP-Frontline for Veterinary<br>Set up your mentor dashboard</div>
+    <div class="setup-form">
+      <div><label class="setup-label">Your full name</label><input class="setup-input" id="setupName" placeholder="e.g. Dr. Amara Diallo"></div>
+      <div><label class="setup-label">Sector</label>
+        <select class="setup-select" id="setupSector">
+          <option>Human health</option><option>Animal health</option><option>Environment</option><option>Lab services</option><option>One Health</option>
+        </select>
+      </div>
+      <div>
+        <label class="setup-label">Your trainees / mentees</label>
+        <div class="setup-trainee-list" id="setupTraineeList"></div>
+        <button class="setup-add" onclick="addSetupTrainee()">+ Add trainee</button>
+      </div>
+      <button class="setup-btn" onclick="saveSetup()">Start dashboard</button>
+    </div>
+  </div>
+</div>
+
+<header class="header">
+  <div class="header-left">
+    <div class="header-logo">FETP Mentor</div>
+    <div class="hd"></div>
+    <div><div class="hu-label">Mentor</div><div class="hu-name" id="hName">—</div></div>
+    <div class="hsector" id="hSector">—</div>
+  </div>
+  <div class="header-right">
+    <div class="sync-status" id="syncStatus"><div class="sync-dot" id="syncDot"></div><span id="syncLabel">Not synced</span></div>
+    <button class="hbtn" id="syncBtn" onclick="syncToSheet()">☁ Sync</button>
+    <input type="file" id="importFile" accept=".json" style="display:none" onchange="handleImport(event)">
+    <button class="hbtn small" onclick="document.getElementById('importFile').click()">↑</button>
+    <button class="hbtn small" onclick="exportData()">↓</button>
+    <button class="hbtn small" onclick="openSetup()">⚙</button>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="sidebar">
+    <div class="sb-label">Overview</div>
+    <button class="sb-btn active" id="ovBtn" onclick="showOverview()">
+      <svg width="13" height="13" viewBox="0 0 13 13" fill="currentColor"><rect x="0" y="0" width="5.5" height="5.5" rx="1.5"/><rect x="7.5" y="0" width="5.5" height="5.5" rx="1.5"/><rect x="0" y="7.5" width="5.5" height="5.5" rx="1.5"/><rect x="7.5" y="7.5" width="5.5" height="5.5" rx="1.5"/></svg>
+      All trainees
+    </button>
+    <div class="sb-label">Program Lead</div>
+    <button class="sb-btn" id="commentsBtn" onclick="showLeadComments()">
+      <svg width="13" height="13" viewBox="0 0 13 13" fill="currentColor"><path d="M1 1h11v8H7.5L5 12V9H1V1z"/></svg>
+      Lead messages
+      <span id="commentsBadge" style="display:none;background:var(--amber);color:#fff;font-size:10px;padding:1px 6px;border-radius:10px;margin-left:auto"></span>
+    </button>
+    <div class="sb-label" id="sbTraineesLabel">Trainees</div>
+    <div id="sbTrainees"></div>
+  </nav>
+  <main class="main">
+    <div class="page active" id="page-overview"></div>
+    <div class="page" id="page-comments">
+      <div style="margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid var(--border)">
+        <div style="font-size:18px;font-weight:600;color:var(--text)">Messages from Program Lead</div>
+        <div style="font-size:12px;color:var(--text-3);margin-top:2px">Messages sent to you by the program lead. Sync to refresh.</div>
+      </div>
+      <div id="leadCommentsPanel"></div>
+    </div>
+    <div id="traineePages"></div>
+  </main>
+</div>
+<div id="toast"></div>
+
+<script>
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwS7ijO4AlNzPHzvug-dpR0AOQ3YwWftftrSoPrMcw34hoqf_mwBC-OiRnPtsJXlQqJ/exec';
+
+const ACTIVITIES = {
+  fi1:[
+    {id:'fi1a1',title:'Weekly surveillance summary report',phases:{
+      before:['Identify diseases to track','Understand blanks vs zero reporting','Determine which diseases to graph','Plan to obtain 3 weeks of historical data','Develop a time management plan','Consider workshop goals while planning'],
+      during:['Check data completeness and accuracy','Find ways to increase facility response','Ensure zero reporting for reportable diseases','Develop graphs and charts','Calculate case fatality rates accurately','Make conclusions based on data','Monitor quality with Scorecard'],
+      after:['Take action for reportable diseases','Identify noteworthy events for report','Summarise quality and timeliness of reporting','Set public health recommendation priorities','Finalise figures for Workshop 2','Ensure presentation is under 30 minutes','Assess quality with Scorecard and feedback']}},
+    {id:'fi1a2',title:'Data quality audit & SWOT analysis',phases:{
+      before:['Identify priority audit questions','Understand site visit logistics','Determine best audit methods','Consider workshop goals while planning'],
+      during:['Review activities after first visit','Check logbook review skills','Troubleshoot visit problems','Monitor quality using Scorecard'],
+      after:['Use SWOT tool to analyse findings','Reflect on causes and solutions','Determine how to communicate findings','Prepare Data Quality Audit Report','Prepare oral presentation','Assess quality with Scorecard and feedback']}},
+    {id:'fi1a3',title:'One Health surveillance summary table',phases:{
+      before:['Contact staff from other sector(s)','Obtain data-sharing permissions','Coordinate data format and site visits','Select diseases or conditions','Decide time frame and locations'],
+      during:['Combine data sources','Design tabulation and display','Summarise and analyse data','Monitor quality with Scorecard'],
+      after:['Support report writing','Decide if table goes in Weekly Report','Inform all participating sectors of results','Recommend how table supports decisions','Assess quality with Scorecard and feedback']}},
+    {id:'fi1a4',title:'Display surveillance data',phases:{
+      before:['Discuss importance of displaying data with leadership'],
+      during:['Select tables/graphs/maps for display','Include One Health topics in materials','Monitor quality with Scorecard'],
+      after:['Develop plan for updating materials','Assess quality with Scorecard and feedback']}},
+    {id:'fi1a5',title:'Cross-sector site visit (optional)',phases:{
+      before:['Select site from another sector','Contact other sector mentor','Obtain permissions','Coordinate logistics'],
+      during:['Accompany trainee during visit','Complete site visit form','Meet all key staff','Monitor quality with Scorecard'],
+      after:['Review information collected','Compare surveillance systems','Review trainee report','Assess quality with Scorecard and feedback']}}
+  ],
+  fi2:[
+    {id:'fi2a1',title:'Weekly report + timeliness & completion',phases:{
+      before:['Develop time management plan','Determine diseases to track','Identify cross-sector collaborators'],
+      during:['Check data completeness','Develop graphs and charts','Identify patterns and trends','Make inferences from data','Identify noteworthy events','Finalise the report','Monitor quality with Scorecard'],
+      after:['Distribute report to other sectors','Prepare Workshop 3 presentation','Assess quality with Scorecard and feedback']}},
+    {id:'fi2a2',title:'Surveillance quality problem analysis',phases:{
+      before:['Review SWOT to identify a weakness','Identify personnel to assist','Involve other-sector personnel if needed'],
+      during:['Facilitate problem analysis session','Use fishbone diagram correctly','Apply TPN determination correctly','Develop recommendations','Monitor quality with Scorecard'],
+      after:['Complete analysis and report','Plan stakeholder communication','Identify Workshop 3 key points','Assess quality with Scorecard and feedback']}},
+    {id:'fi2a3',title:'Case investigation',phases:{
+      before:['Interpret suspect surveillance data','Locate case investigation forms','Identify cultural/language barriers'],
+      during:['Review case investigation forms','Contact lab and other sectors','Guide case interviews','Monitor quality with Scorecard'],
+      after:['Develop hypothesis','Determine notification recipients','Develop case report','Assess quality with Scorecard and feedback','Identify Workshop 3 key points']}},
+    {id:'fi2a4',title:'Outbreak investigation',phases:{
+      before:['Decide if outbreak logbook needed','Decide if formal investigation warranted','Conduct literature review if needed','Clarify trainee role on team','Coordinate with partner agencies'],
+      during:['Follow outbreak investigation steps','Review descriptive epidemiology','Ensure hypothesis has outcome and exposure','Monitor quality with Scorecard'],
+      after:['Develop investigation report','Summarise recommendations','Determine communication methods','Identify Workshop 3 key points','Evaluate teamwork with Scorecard']}}
+  ]
+};
+function allActs(){return[...ACTIVITIES.fi1,...ACTIVITIES.fi2]}
+
+const AVATARS=[
+  {bg:'#e8f0f5',color:'#1e4d6b'},{bg:'#e6f2eb',color:'#2a5c3f'},
+  {bg:'#fdf3dc',color:'#7a4f00'},{bg:'#fdf0f0',color:'#7a1e1e'},
+  {bg:'#f3eefb',color:'#5a1a8c'},{bg:'#eefbfb',color:'#1a6b6b'},
+  {bg:'#fbf0ee',color:'#8c3d1a'},{bg:'#f0fbee',color:'#1a6b2a'}
+];
+function av(i){return AVATARS[i%AVATARS.length]}
+function initials(n){return n.split(' ').filter(Boolean).map(w=>w[0]).join('').slice(0,2).toUpperCase()||'?'}
+function itemKey(actId,ph,i){return actId+'_'+ph+'_'+i}
+
+// ── State ────────────────────────────────────────────────────
+let mentor={name:'',sector:'',trainees:[],lastSync:null};
+// trainee: {name, items:{key:{checked,comment,files,submittedAt}}, mentorScores:{key:{score,remark,scoredAt}}}
+let currentTrainee=null;
+let currentInterval='fi1';
+
+// ── Helpers ──────────────────────────────────────────────────
+function actProgress(t,actId){
+  const act=allActs().find(a=>a.id===actId);if(!act)return 0;
+  let total=0,done=0;
+  ['before','during','after'].forEach(ph=>(act.phases[ph]||[]).forEach((_,i)=>{total++;if(t.items?.[itemKey(actId,ph,i)]?.checked)done++;}));
+  return total?Math.round(done/total*100):0;
+}
+function intervalAvg(t,interval){
+  // Use sheet values (numbers) when available
+  if(interval==='fi1'&&t.pctFI1!==undefined)return t.pctFI1;
+  if(interval==='fi2'&&t.pctFI2!==undefined)return t.pctFI2;
+  // Fall back to calculating from local items
+  const acts=ACTIVITIES[interval];
+  return Math.round(acts.map(a=>actProgress(t,a.id)).reduce((s,v)=>s+v,0)/acts.length);
+}
+function overallPct(t){
+  if(t.pctOverall!==undefined)return t.pctOverall;
+  return Math.round((intervalAvg(t,'fi1')+intervalAvg(t,'fi2'))/2);
+}
+
+function pendingReviews(t){
+  let count=0;
+  allActs().forEach(act=>['before','during','after'].forEach(ph=>(act.phases[ph]||[]).forEach((_,i)=>{
+    const k=itemKey(act.id,ph,i);
+    if(t.items?.[k]?.submittedAt&&!t.mentorScores?.[k]?.score)count++;
+  })));
+  return count;
+}
+
+function actBadge(t,actId){
+  const act=allActs().find(a=>a.id===actId);if(!act)return'none';
+  let pending=0,scored=0;
+  ['before','during','after'].forEach(ph=>(act.phases[ph]||[]).forEach((_,i)=>{
+    const k=itemKey(actId,ph,i);
+    if(t.items?.[k]?.submittedAt&&!t.mentorScores?.[k]?.score)pending++;
+    if(t.mentorScores?.[k]?.score)scored++;
+  }));
+  if(pending>0)return'review';
+  if(scored>0)return'scored';
+  return'none';
+}
+
+function stars(score,key,tIdx){
+  let h='';
+  for(let i=1;i<=5;i++){
+    if(key!==undefined){
+      h+=`<button class="star-btn${i<=(score||0)?' filled':''}" onclick="event.stopPropagation();setItemScore(${tIdx},'${key}',${i})">★</button>`;
+    } else {
+      h+=`<span class="star-btn${i<=(score||0)?' filled':''}">★</span>`;
+    }
+  }
+  return h;
+}
+
+function showToast(msg){
+  const el=document.getElementById('toast');el.textContent=msg;el.style.opacity='1';
+  clearTimeout(el._t);el._t=setTimeout(()=>el.style.opacity='0',3000);
+}
+
+// ── Setup ────────────────────────────────────────────────────
+let setupTrainees=[];
+function openSetup(){
+  document.getElementById('setupName').value=mentor.name;
+  document.getElementById('setupSector').value=mentor.sector;
+  setupTrainees=mentor.trainees.map(t=>t.name);
+  renderSetupTrainees();
+  document.getElementById('setupScreen').classList.add('open');
+}
+function addSetupTrainee(){setupTrainees.push('');renderSetupTrainees();const inputs=document.querySelectorAll('#setupTraineeList input');if(inputs.length)inputs[inputs.length-1].focus();}
+function removeSetupTrainee(i){setupTrainees.splice(i,1);renderSetupTrainees();}
+function renderSetupTrainees(){
+  const list=document.getElementById('setupTraineeList');
+  list.innerHTML=setupTrainees.map((t,i)=>`<div class="setup-trainee-row">
+    <input class="setup-input" value="${t}" placeholder="Trainee name" oninput="setupTrainees[${i}]=this.value">
+    <button class="setup-remove" onclick="removeSetupTrainee(${i})">✕</button>
+  </div>`).join('');
+}
+function saveSetup(){
+  const name=document.getElementById('setupName').value.trim();
+  if(!name){alert('Please enter your name.');return;}
+  const existing={};mentor.trainees.forEach(t=>existing[t.name]=t);
+  mentor.name=name;mentor.sector=document.getElementById('setupSector').value;
+  const names=setupTrainees.map(s=>s.trim()).filter(Boolean);
+  if(!names.length){alert('Please add at least one trainee.');return;}
+  mentor.trainees=names.map(n=>existing[n]||{name:n,items:{},mentorScores:{}});
+  document.getElementById('setupScreen').classList.remove('open');
+  saveToLocal();renderAll();showToast('Settings saved.');
+}
+
+// ── Render ───────────────────────────────────────────────────
+function renderAll(){
+  document.getElementById('hName').textContent=mentor.name||'—';
+  document.getElementById('hSector').textContent=mentor.sector||'—';
+  if(mentor.lastSync){const t=new Date(mentor.lastSync).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});setSyncState('synced','Last sync '+t);}
+  renderSidebar();renderOverview();renderLeadComments();
+  if(currentTrainee!==null)showTrainee(currentTrainee);
+}
+
+function renderLeadComments(){
+  const container=document.getElementById('leadCommentsPanel');
+  if(!container)return;
+  const comments=mentor.leadComments||[];
+  if(!comments.length){
+    container.innerHTML='<div style="font-size:12px;color:var(--text-3);font-style:italic;padding:10px 0">No messages from the program lead yet.</div>';
+    return;
+  }
+  container.innerHTML=comments.map(c=>`
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;margin-bottom:8px">
+      <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--text-3);margin-bottom:4px">
+        ${c.leadName||'Program Lead'} · ${c.timestamp?new Date(c.timestamp).toLocaleDateString():''}
+      </div>
+      <div style="font-size:13px;color:var(--text);line-height:1.5">${c.comment}</div>
+    </div>`).join('');
+}
+
+function renderSidebar(){
+  const sb=document.getElementById('sbTrainees');
+  sb.innerHTML='';
+  mentor.trainees.forEach((t,idx)=>{
+    const pct=overallPct(t);const a=av(idx);const pending=pendingReviews(t);
+    const btn=document.createElement('button');
+    btn.className='sb-btn'+(currentTrainee===idx?' active':'');
+    btn.id='sb-'+idx;btn.onclick=()=>showTrainee(idx);
+    btn.innerHTML=`<div class="trainee-av" style="background:${a.bg};color:${a.color}">${initials(t.name)}</div>
+      <div class="sb-info"><div class="sb-name">${t.name}</div><div class="sb-pct">${pct}% complete</div></div>
+      ${pending>0?`<div class="sb-pending-dot" title="${pending} pending review"></div>`:''}`;
+    sb.appendChild(btn);
+  });
+}
+
+function renderOverview(){
+  const page=document.getElementById('page-overview');
+  const totalPending=mentor.trainees.reduce((s,t)=>s+pendingReviews(t),0);
+  const avgPct=mentor.trainees.length?Math.round(mentor.trainees.map(overallPct).reduce((s,v)=>s+v,0)/mentor.trainees.length):0;
+  page.innerHTML=`<div class="ov-grid">
+    <div class="ov-card"><div class="ov-label">Trainees</div><div class="ov-val">${mentor.trainees.length}</div><div class="ov-sub">assigned to you</div></div>
+    <div class="ov-card"><div class="ov-label">Avg completion</div><div class="ov-val">${avgPct}%</div><div class="ov-sub">across FI 1 &amp; 2</div></div>
+    <div class="ov-card"><div class="ov-label">Pending review</div><div class="ov-val" style="color:${totalPending>0?'var(--amber)':'var(--text)'}">${totalPending}</div><div class="ov-sub">items awaiting your score</div></div>
+    <div class="ov-card"><div class="ov-label">On track</div><div class="ov-val">${mentor.trainees.filter(t=>overallPct(t)>=50).length}/${mentor.trainees.length}</div><div class="ov-sub">trainees ≥ 50%</div></div>
+  </div>`;
+  if(!mentor.trainees.length){page.innerHTML+='<div style="text-align:center;padding:40px;color:var(--text-3)">No trainees yet. Go to ⚙ Settings to add them.</div>';return;}
+  mentor.trainees.forEach((t,idx)=>{
+    const pct=overallPct(t);const fi1=intervalAvg(t,'fi1');const fi2=intervalAvg(t,'fi2');
+    const pending=pendingReviews(t);const a=av(idx);
+    const card=document.createElement('div');card.className='trainee-ov-card';card.onclick=()=>showTrainee(idx);
+    const notSynced=t.pctOverall===undefined&&(!t.items||Object.keys(t.items).length===0);
+    card.innerHTML=`<div class="trainee-av-lg" style="background:${a.bg};color:${a.color};opacity:${notSynced?0.5:1}">${initials(t.name)}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:14px;font-weight:500;color:var(--text)">${t.name}</div>
+        ${notSynced
+          ? `<div style="font-size:11px;color:var(--amber);margin-top:3px">⏳ Awaiting first sync from mentee</div>`
+          : `<div class="tov-stats"><span class="tov-stat">FI 1: <span>${fi1}%</span></span><span class="tov-stat">FI 2: <span>${fi2}%</span></span>${pending>0?`<span class="pending-badge">⚠ ${pending} to review</span>`:''}</div>`
+        }
+      </div>
+      <div style="text-align:right"><div class="tov-pct" style="color:${notSynced?'var(--text-3)':'var(--accent)'}">${notSynced?'—':pct+'%'}</div><div class="pbar" style="margin-top:6px;margin-left:auto"><div class="pbar-fill" style="width:${pct}%"></div></div></div>`;
+    page.appendChild(card);
+  });
+}
+
+// ── Trainee page ─────────────────────────────────────────────
+function showTrainee(idx){
+  currentTrainee=idx;currentInterval='fi1';
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('ovBtn').classList.remove('active');
+  document.querySelectorAll('.sb-btn').forEach(b=>b.classList.remove('active'));
+  const sb=document.getElementById('sb-'+idx);if(sb)sb.classList.add('active');
+  let page=document.getElementById('tp-'+idx);
+  if(!page){page=document.createElement('div');page.className='page';page.id='tp-'+idx;document.getElementById('traineePages').appendChild(page);}
+  page.classList.add('active');
+  renderTraineePage(idx);
+}
+
+function renderTraineePage(idx){
+  const t=mentor.trainees[idx];const a=av(idx);
+  const pct=overallPct(t);const fi1=intervalAvg(t,'fi1');const fi2=intervalAvg(t,'fi2');
+  const page=document.getElementById('tp-'+idx);
+  const notSynced2=t.pctOverall===undefined&&(!t.items||Object.keys(t.items).length===0);
+  page.innerHTML=`<div class="trainee-header">
+    <div class="trainee-av-lg" style="background:${a.bg};color:${a.color}">${initials(t.name)}</div>
+    <div><div class="trainee-header-name">${t.name}</div>
+      <div class="trainee-header-meta">${notSynced2?'⏳ Awaiting first sync from mentee — ask them to sync their dashboard':`FI 1: ${fi1}% &nbsp;·&nbsp; FI 2: ${fi2}%`}</div>
+    </div>
+    <div class="trainee-header-right"><div class="trainee-pct-big" style="color:${notSynced2?'var(--text-3)':'var(--accent)'}">${notSynced2?'—':pct+'%'}</div><div class="trainee-pct-label">overall completion</div></div>
+  </div>
+  <div class="itabs">
+    <button class="itab${currentInterval==='fi1'?' active':''}" onclick="switchInterval(${idx},'fi1')">Field Interval 1</button>
+    <button class="itab${currentInterval==='fi2'?' active':''}" onclick="switchInterval(${idx},'fi2')">Field Interval 2</button>
+  </div>
+  <div id="acts-${idx}">${buildActivities(t,idx,currentInterval)}</div>`;
+}
+
+function switchInterval(idx,interval){currentInterval=interval;renderTraineePage(idx);}
+
+function buildActivities(t,idx,interval){
+  return ACTIVITIES[interval].map(act=>{
+    const pct=actProgress(t,act.id);
+    const badge=actBadge(t,act.id);
+    const dotColor=pct===100?'var(--green)':pct>0?'var(--amber)':'var(--border-strong)';
+    const badgeHtml=badge==='review'?'<span class="act-badge badge-review">⚠ Needs review</span>':badge==='scored'?'<span class="act-badge badge-scored">✓ Scored</span>':'<span class="act-badge badge-none">Not submitted</span>';
+    return`<div class="act-card">
+      <div class="act-strip"><div class="act-strip-fill" style="width:${pct}%"></div></div>
+      <div class="act-head" onclick="toggleAct('${idx}','${act.id}')">
+        <div class="act-dot" style="background:${dotColor}"></div>
+        <span class="act-title">${act.title}</span>
+        <span class="act-pct">${pct}%</span>
+        <div class="mini-bar"><div class="mini-fill" style="width:${pct}%"></div></div>
+        ${badgeHtml}
+        <span class="chevron" id="chev-${idx}-${act.id}">▼</span>
+      </div>
+      <div class="act-body" id="body-${idx}-${act.id}">
+        ${buildMentorChecklist(t,idx,act)}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function buildMentorChecklist(t,idx,act){
+  const phaseNames={before:'Before',during:'During',after:'After'};
+  const phaseCls={before:'pt-before',during:'pt-during',after:'pt-after'};
+  let html='';
+  ['before','during','after'].forEach(ph=>{
+    const items=act.phases[ph]||[];if(!items.length)return;
+    const done=items.filter((_,i)=>t.items?.[itemKey(act.id,ph,i)]?.checked).length;
+    html+=`<div class="phase-block"><div class="phase-tag-row">
+      <span class="phase-tag ${phaseCls[ph]}">${phaseNames[ph]}</span>
+      <span class="phase-count">${done}/${items.length}</span>
+    </div>`;
+    items.forEach((itemText,i)=>{
+      const k=itemKey(act.id,ph,i);
+      const itm=t.items?.[k]||{};
+      const sc=t.mentorScores?.[k];
+      const chk=itm.checked||false;
+      const submitted=!!itm.submittedAt;
+      html+=`<div class="item-row${submitted?' has-submission':''}">
+        <div class="item-main">
+          <div class="item-check-icon${chk?' done':''}">${chk?'<svg width="9" height="7" viewBox="0 0 9 7" fill="none"><path d="M1 3.5L3.5 6L8 1" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>':''}</div>
+          <div class="item-text-wrap">
+            <div class="item-text${chk?' done':''}">${itemText}</div>
+            ${submitted?`<div class="item-submission-tag">● Submitted by mentee${itm.submittedAt?' · '+new Date(itm.submittedAt).toLocaleDateString():''}</div>`:''}
+            ${(itm.comment||itm.files?.length)?`<button class="item-expand-btn" onclick="toggleItemDetail('${idx}','${k}')">View mentee submission ▾</button>`:''}
+          </div>
+          <div class="item-score-row">
+            ${stars(sc?.score||0,k,idx)}
+            <span class="item-score-val" id="sv-${idx}-${k}">${sc?.score?sc.score+'/5':''}</span>
+          </div>
+        </div>
+        ${(itm.comment||itm.files?.length||submitted)?`
+        <div class="item-detail" id="idet-${idx}-${k}">
+          <div class="item-detail-inner">
+            ${itm.comment?`<div><div class="detail-section-label">Mentee comment</div><div class="mentee-comment-box">${itm.comment}</div></div>`:''}
+            ${itm.files?.length?`<div><div class="detail-section-label">Evidence files</div><div style="display:flex;gap:7px;flex-wrap:wrap">${itm.files.map(f=>f.driveUrl?`<a href="${f.driveUrl}" target="_blank" class="mentee-file-link">📎 ${f.name}</a>`:`<span class="mentee-file-link" style="opacity:.6">📎 ${f.name} (pending)</span>`).join('')}</div></div>`:''}
+            <div>
+              <div class="detail-section-label">Your remark (optional)</div>
+              <textarea class="remark-area" id="rem-${idx}-${k}" placeholder="Add feedback or remarks for this item…" oninput="saveRemark(${idx},'${k}',this.value)">${sc?.remark||''}</textarea>
+              <button class="save-score-btn" style="margin-top:6px" onclick="saveItemScore(${idx},'${k}')">Save score &amp; remark</button>
+            </div>
+          </div>
+        </div>`:'<div class="not-submitted-msg">Mentee has not submitted this item yet.</div>'}
+      </div>`;
+    });
+    html+='</div>';
+  });
+  return html;
+}
+
+function toggleAct(idx,actId){
+  const body=document.getElementById('body-'+idx+'-'+actId);
+  const chev=document.getElementById('chev-'+idx+'-'+actId);
+  if(body){const o=body.classList.toggle('open');if(chev)chev.classList.toggle('open',o);}
+}
+
+function toggleItemDetail(idx,key){
+  const det=document.getElementById('idet-'+idx+'-'+key);
+  if(det)det.classList.toggle('open');
+}
+
+function setItemScore(tIdx,key,score){
+  const t=mentor.trainees[tIdx];
+  if(!t.mentorScores)t.mentorScores={};
+  if(!t.mentorScores[key])t.mentorScores[key]={};
+  t.mentorScores[key].score=score;
+  t.mentorScores[key].scoredAt=new Date().toISOString();
+  // Update star display
+  const scoreRow=document.querySelector(`#sv-${tIdx}-${key}`)?.closest('.item-score-row');
+  if(scoreRow){
+    scoreRow.innerHTML=stars(score,key,tIdx)+`<span class="item-score-val" id="sv-${tIdx}-${key}">${score}/5</span>`;
+  }
+  saveToLocal();
+}
+
+function saveRemark(tIdx,key,val){
+  const t=mentor.trainees[tIdx];
+  if(!t.mentorScores)t.mentorScores={};
+  if(!t.mentorScores[key])t.mentorScores[key]={};
+  t.mentorScores[key].remark=val;
+  saveToLocal();
+}
+
+function saveItemScore(tIdx,key){
+  const t=mentor.trainees[tIdx];
+  if(!t.mentorScores?.[key]?.score){showToast('Please select a star rating first.');return;}
+  t.mentorScores[key].scoredAt=new Date().toISOString();
+  saveToLocal();showToast('Score saved. Sync to push to Sheet.');
+}
+
+function showLeadComments(){
+  currentTrainee=null;
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.sb-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-comments').classList.add('active');
+  document.getElementById('commentsBtn').classList.add('active');
+  renderLeadComments();
+}
+
+function showOverview(){
+  currentTrainee=null;
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-overview').classList.add('active');
+  document.querySelectorAll('.sb-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('ovBtn').classList.add('active');
+  renderOverview();
+}
+
+// ── Sync ─────────────────────────────────────────────────────
+function setSyncState(state,label){
+  const dot=document.getElementById('syncDot');const lbl=document.getElementById('syncLabel');
+  if(dot)dot.className='sync-dot '+state;if(lbl)lbl.textContent=label;
+}
+
+function syncToSheet(){
+  if(!SCRIPT_URL){showToast('Sync not configured. Ask IT for setup.');return;}
+  if(!mentor.name){showToast('Please complete setup first.');return;}
+  setSyncState('syncing','Syncing…');document.getElementById('syncBtn').disabled=true;
+
+  // Step 1: Push mentor scores to sheet
+  const pushPayload={action:'syncMentor',data:{
+    name:mentor.name,
+    trainees:mentor.trainees.map(t=>({name:t.name,mentorScores:t.mentorScores||{}}))
+  }};
+
+  fetch(SCRIPT_URL,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(pushPayload)})
+  .then(r=>r.json())
+  .then(data=>{
+    if(!data.success)throw new Error(data.error||'Sync failed');
+    // Step 2: Pull ALL data from sheet to get mentee checklists + lead comments
+    return fetch(SCRIPT_URL,{method:'POST',headers:{'Content-Type':'text/plain'},
+      body:JSON.stringify({action:'getAllData'})});
+  })
+  .then(r=>r.json())
+  .then(allData=>{
+    if(!allData.success)throw new Error(allData.error||'Fetch failed');
+    mergeAllData(allData);
+    const time=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+    setSyncState('synced','Synced '+time);
+    mentor.lastSync=new Date().toISOString();
+    saveToLocal();
+    showToast('✓ Synced — mentee data and comments refreshed.');
+  })
+  .catch(err=>{setSyncState('error','Sync failed');showToast('Sync error: '+err.message);})
+  .finally(()=>document.getElementById('syncBtn').disabled=false);
+}
+
+// Merge full sheet data into mentor state:
+// - updates each trainee's checklist items (checked state, remarks, files)
+// - pulls lead comments addressed to this mentor
+function mergeAllData(allData){
+  const mentorRecord=(allData.mentors||[]).find(m=>m.name===mentor.name);
+
+  // Mark all local trainees as not-yet-synced, then update those found in sheet
+  mentor.trainees.forEach(t=>{t.syncedFromSheet=false;});
+
+  if(mentorRecord){
+    // Update each trainee's items from sheet checklists
+    (mentorRecord.mentees||[]).forEach(sheetMentee=>{
+      let t=mentor.trainees.find(t=>t.name===sheetMentee.name);
+      // If mentee is in sheet but not in mentor's local list, add them
+      if(!t){
+        t={name:sheetMentee.name,items:{},mentorScores:{}};
+        mentor.trainees.push(t);
+      }
+      t.syncedFromSheet=true;
+      // overallPct from sheet could be "16%" string or number 16
+      const rawOverall=sheetMentee.overallPct;
+      const rawFI1=sheetMentee.fi1Pct;
+      const rawFI2=sheetMentee.fi2Pct;
+      t.pctOverall=typeof rawOverall==='number'?rawOverall:parseInt(String(rawOverall))||0;
+      t.pctFI1=typeof rawFI1==='number'?rawFI1:parseInt(String(rawFI1))||0;
+      t.pctFI2=typeof rawFI2==='number'?rawFI2:parseInt(String(rawFI2))||0;
+      t.sheetOverallPct=t.pctOverall+'%';  // always set so notSynced=false after sync
+      console.log('Mentee sheet data:',sheetMentee.name,'overall=',rawOverall,'->',t.pctOverall,'fi1=',rawFI1,'->',t.pctFI1);
+      t.lastSync=sheetMentee.lastSync||'';
+
+      // Rebuild items from sheet checklist data
+      if(sheetMentee.checklists){
+        Object.entries(sheetMentee.checklists).forEach(([key,cl])=>{
+          if(!t.items[key])t.items[key]={};
+          t.items[key].checked=cl.checked||false;
+          if(cl.remark)t.items[key].comment=cl.remark;
+          if(cl.files&&cl.files.length)t.items[key].files=cl.files.map(f=>({name:f.fileName,driveUrl:f.fileUrl}));
+          if(cl.status==='Submitted'||cl.status==='Approved'||cl.status==='Checked'){
+            if(!t.items[key].submittedAt)t.items[key].submittedAt=new Date().toISOString();
+          }
+        });
+      }
+      // Merge scores from sheet
+      if(sheetMentee.scores){
+        Object.entries(sheetMentee.scores).forEach(([key,sc])=>{
+          if(!t.mentorScores[key])t.mentorScores[key]={};
+          if(sc.value)t.mentorScores[key].score=sc.value;
+          if(sc.comment)t.mentorScores[key].remark=sc.comment;
+          if(sc.scoredAt)t.mentorScores[key].scoredAt=sc.scoredAt;
+        });
+      }
+    });
+
+    // Pull lead comments for this mentor (non-internal only)
+    mentor.leadComments=(mentorRecord.comments||[]).filter(c=>!c.isInternal);
+  }
+
+  saveToLocal();
+  renderAll();
+  if(currentTrainee!==null)renderTraineePage(currentTrainee);
+}
+
+function saveToLocal(){try{localStorage.setItem('fetp_mentor_v2',JSON.stringify(mentor));}catch(e){}}
+function loadFromLocal(){
+  try{const r=localStorage.getItem('fetp_mentor_v2');if(!r)return false;const d=JSON.parse(r);if(!d.name)return false;
+  mentor=d;if(!Array.isArray(mentor.trainees))mentor.trainees=[];
+  mentor.trainees.forEach(t=>{if(!t.items)t.items={};if(!t.mentorScores)t.mentorScores={};});return true;}
+  catch(e){return false;}
+}
+function exportData(){
+  const blob=new Blob([JSON.stringify({exportedAt:new Date().toISOString(),version:2,mentor},null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);const a=document.createElement('a');
+  a.href=url;a.download='fetp_mentor_'+(mentor.name||'data').replace(/\s+/g,'_')+'_'+new Date().toISOString().slice(0,10)+'.json';
+  a.click();URL.revokeObjectURL(url);
+}
+function handleImport(e){
+  const file=e.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=function(ev){
+    try{const d=JSON.parse(ev.target.result);const m=d.mentor||d;if(!m.name)throw new Error('Invalid');
+    if(!confirm('Import data for '+m.name+'? This replaces current data.'))return;
+    mentor=m;if(!Array.isArray(mentor.trainees))mentor.trainees=[];
+    mentor.trainees.forEach(t=>{if(!t.items)t.items={};if(!t.mentorScores)t.mentorScores={};});
+    saveToLocal();renderAll();showToast('Imported: '+mentor.name);}
+    catch(err){alert('Could not read file: '+err.message);}
+    e.target.value='';
+  };reader.readAsText(file);
+}
+
+// ── Init ─────────────────────────────────────────────────────
+const PRE_MENTOR = {"name": "Dr Hussain Ali", "sector": "Group 1", "trainees": [{"name": "Dr Nuzhat Jabeen", "items": {}, "mentorScores": {}}, {"name": "Dr Sundas Farah", "items": {}, "mentorScores": {}}, {"name": "Dr Farooq Ahmed", "items": {}, "mentorScores": {}}, {"name": "Dr Saad Bin Zia", "items": {}, "mentorScores": {}}, {"name": "Dr Adil Mustufa", "items": {}, "mentorScores": {}}, {"name": "Dr Hamid Ali", "items": {}, "mentorScores": {}}], "leadComments": []};
+
+if(loadFromLocal()&&mentor.name){renderAll();showToast('Welcome back, '+mentor.name+'!');}
+else{
+  mentor = PRE_MENTOR;
+  saveToLocal();
+  renderAll();
+  showToast('Welcome, '+mentor.name+'!');
+}
+</script>
+</body>
+</html>
