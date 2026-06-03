@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FETP Mentee Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0f1117;--surface:#181c27;--surface2:#1e2335;--surface3:#242840;--border:#2a3050;--border-light:#323860;--text:#e8eaf2;--text-2:#8890b0;--text-3:#545c7a;--accent:#4f8ef7;--accent-dim:#1e3a6e;--accent-glow:rgba(79,142,247,.15);--green:#34d399;--green-dim:#0d3325;--amber:#fbbf24;--amber-dim:#3d2f00;--red:#f87171;--red-dim:#3d1010;--purple:#a78bfa;--purple-dim:#2d1f5e;--radius:12px;--radius-sm:7px;--shadow:0 2px 8px rgba(0,0,0,.4);--shadow-lg:0 8px 32px rgba(0,0,0,.5)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Sora',sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.6;min-height:100vh}
+.header{background:var(--surface);border-bottom:1px solid var(--border);padding:0 28px;height:58px;display:flex;align-items:center;justify-content:space-between;gap:16px;position:sticky;top:0;z-index:100;box-shadow:0 2px 20px rgba(0,0,0,.4)}
+.header-brand{display:flex;align-items:center;gap:12px}
+.brand-badge{background:linear-gradient(135deg,#4f8ef7,#a78bfa);border-radius:8px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0}
+.brand-name{font-size:15px;font-weight:600;color:var(--text)}
+.brand-sub{font-size:11px;color:var(--text-3);font-family:'DM Mono',monospace;letter-spacing:.05em}
+.user-pill{display:flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:5px 12px 5px 6px}
+.user-avatar{width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#4f8ef7,#a78bfa);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff}
+.user-name{font-size:12px;font-weight:500;color:var(--text)}
+.header-actions{display:flex;gap:8px;align-items:center}
+.hbtn{padding:5px 12px;border-radius:var(--radius-sm);font-size:11px;font-family:'Sora',sans-serif;font-weight:500;cursor:pointer;border:1px solid var(--border-light);background:var(--surface2);color:var(--text-2);transition:all .15s}
+.hbtn:hover{border-color:var(--accent);color:var(--accent)}
+.hbtn-primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+.hbtn-primary:hover{background:#3a7de8}
+.hbtn:disabled{opacity:.4;cursor:not-allowed}
+.sync-indicator{display:flex;align-items:center;gap:6px;font-size:11px;font-family:'DM Mono',monospace;color:var(--text-3)}
+.sync-dot{width:6px;height:6px;border-radius:50%;background:var(--text-3)}
+.sync-dot.synced{background:var(--green)}
+.sync-dot.syncing{background:var(--amber);animation:blink 1s infinite}
+.sync-dot.error{background:var(--red)}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.layout{display:flex;min-height:calc(100vh - 58px)}
+.sidebar{width:230px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);padding:16px 10px;position:sticky;top:58px;height:calc(100vh - 58px);overflow-y:auto;display:flex;flex-direction:column;gap:2px}
+.sb-label{font-size:10px;font-family:'DM Mono',monospace;letter-spacing:.1em;text-transform:uppercase;color:var(--text-3);padding:0 8px;margin:12px 0 5px}
+.sb-label:first-child{margin-top:0}
+.sb-btn{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:var(--radius-sm);cursor:pointer;color:var(--text-2);font-size:12px;font-weight:400;transition:all .15s;border:1px solid transparent;background:none;width:100%;text-align:left}
+.sb-btn:hover{background:var(--surface2);color:var(--text)}
+.sb-btn.active{background:var(--accent-dim);color:var(--accent);border-color:rgba(79,142,247,.2);font-weight:500}
+.sb-info{flex:1;min-width:0}
+.sb-name{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sb-pct{font-size:10px;color:var(--text-3);font-family:'DM Mono',monospace}
+.sb-btn.active .sb-pct{color:var(--accent)}
+.main{flex:1;padding:24px 28px;min-width:0}
+.ov-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
+.ov-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px}
+.ov-label{font-size:10px;font-family:'DM Mono',monospace;letter-spacing:.06em;text-transform:uppercase;color:var(--text-3);margin-bottom:8px}
+.ov-val{font-size:24px;font-weight:700;color:var(--text);line-height:1}
+.ov-sub{font-size:11px;color:var(--text-3);margin-top:4px}
+.section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--border)}
+.section-title{font-size:18px;font-weight:600;color:var(--text)}
+.section-sub{font-size:12px;color:var(--text-3);margin-top:2px}
+.act-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:10px;overflow:hidden;transition:border-color .2s}
+.act-card:hover{border-color:var(--border-light)}
+.act-strip{height:3px;background:var(--border)}
+.act-strip-fill{height:3px;background:var(--accent);transition:width .4s}
+.act-head{display:flex;align-items:center;gap:10px;padding:12px 16px;cursor:pointer;flex-wrap:wrap}
+.act-head:hover{background:var(--surface2)}
+.act-status{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.act-title-text{font-size:13px;font-weight:500;color:var(--text);flex:1;min-width:140px}
+.act-pct-text{font-size:11px;color:var(--text-3);font-family:'DM Mono',monospace}
+.mini-bar{width:60px;height:3px;background:var(--border);border-radius:2px;overflow:hidden;flex-shrink:0}
+.mini-fill{height:3px;background:var(--accent);border-radius:2px}
+.status-chip{font-size:10px;padding:2px 8px;border-radius:20px;font-weight:500;white-space:nowrap;font-family:'DM Mono',monospace}
+.chip-pending{background:var(--surface3);color:var(--text-3);border:1px solid var(--border)}
+.chip-submitted{background:var(--amber-dim);color:var(--amber);border:1px solid rgba(251,191,36,.2)}
+.chip-approved{background:var(--green-dim);color:var(--green);border:1px solid rgba(52,211,153,.2)}
+.chevron{font-size:10px;color:var(--text-3);transition:transform .2s}
+.chevron.open{transform:rotate(180deg)}
+.act-body{display:none;border-top:1px solid var(--border);padding:16px}
+.act-body.open{display:block}
+.phase-block{margin-bottom:16px}
+.phase-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.phase-tag{font-size:10px;font-family:'DM Mono',monospace;letter-spacing:.07em;text-transform:uppercase;font-weight:500;padding:2px 8px;border-radius:20px}
+.ptag-before{background:var(--accent-dim);color:var(--accent);border:1px solid rgba(79,142,247,.2)}
+.ptag-during{background:var(--amber-dim);color:var(--amber);border:1px solid rgba(251,191,36,.2)}
+.ptag-after{background:var(--green-dim);color:var(--green);border:1px solid rgba(52,211,153,.2)}
+.phase-count{font-size:10px;color:var(--text-3);font-family:'DM Mono',monospace}
+.item-row{border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:6px;overflow:hidden;background:var(--surface2)}
+.item-main{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;cursor:pointer;transition:background .1s}
+.item-main:hover{background:var(--surface3)}
+.item-cb{width:15px;height:15px;border-radius:3px;border:1.5px solid var(--border-light);background:transparent;flex-shrink:0;margin-top:2px;cursor:pointer;accent-color:var(--accent)}
+.item-text{font-size:12px;color:var(--text);line-height:1.5;flex:1}
+.item-text.done{color:var(--text-3);text-decoration:line-through}
+.item-stars{font-size:12px;flex-shrink:0;color:var(--amber)}
+.item-expand-icon{font-size:10px;color:var(--text-3);flex-shrink:0;transition:transform .15s;margin-top:2px}
+.item-expand-icon.open{transform:rotate(180deg)}
+.item-detail{display:none;padding:12px;border-top:1px solid var(--border);background:var(--surface)}
+.item-detail.open{display:block}
+.ev-label{font-size:10px;font-family:'DM Mono',monospace;letter-spacing:.07em;text-transform:uppercase;color:var(--text-3);margin-bottom:5px;margin-top:10px}
+.ev-label:first-child{margin-top:0}
+.ev-textarea{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 10px;font-size:12px;font-family:'Sora',sans-serif;color:var(--text);resize:vertical;min-height:54px;outline:none;transition:border-color .15s;line-height:1.5}
+.ev-textarea:focus{border-color:var(--accent)}
+.ev-textarea::placeholder{color:var(--text-3)}
+.ev-textarea:disabled{opacity:.5;cursor:not-allowed}
+.upload-zone{border:1.5px dashed var(--border-light);border-radius:var(--radius-sm);padding:12px;text-align:center;cursor:pointer;transition:all .15s;background:var(--surface2);margin-bottom:6px}
+.upload-zone:hover{border-color:var(--accent);background:var(--accent-glow)}
+.upload-zone input{display:none}
+.upload-text{font-size:11px;color:var(--text-3)}
+.upload-text span{color:var(--accent);font-weight:500}
+.file-list{display:flex;flex-direction:column;gap:4px}
+.file-item{display:flex;align-items:center;gap:8px;background:var(--surface3);border:1px solid var(--border);border-radius:var(--radius-sm);padding:5px 8px}
+.file-icon{font-size:14px;flex-shrink:0}
+.file-name{font-size:11px;color:var(--text-2);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.file-size{font-size:10px;color:var(--text-3);font-family:'DM Mono',monospace;flex-shrink:0}
+.file-remove{font-size:12px;color:var(--text-3);cursor:pointer;flex-shrink:0;padding:2px 4px;border:none;background:none;transition:color .15s;font-family:'Sora',sans-serif}
+.file-remove:hover{color:var(--red)}
+.mentor-feedback{background:var(--purple-dim);border:1px solid rgba(167,139,250,.2);border-radius:var(--radius-sm);padding:10px 12px;margin-top:10px}
+.mf-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px}
+.mf-badge{font-size:10px;font-family:'DM Mono',monospace;letter-spacing:.07em;text-transform:uppercase;color:var(--purple)}
+.mf-stars{color:var(--amber);font-size:13px;letter-spacing:1px}
+.mf-comment{font-size:12px;color:var(--text-2);line-height:1.5;font-style:italic}
+.submit-section{margin-top:14px;padding-top:12px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+.submit-status{font-size:12px;color:var(--text-3)}
+.submit-status.submitted{color:var(--amber)}
+.submit-status.approved{color:var(--green)}
+.act-submit-btn{padding:7px 16px;border-radius:var(--radius-sm);font-size:12px;font-family:'Sora',sans-serif;font-weight:600;cursor:pointer;border:none;background:var(--accent);color:#fff;transition:all .15s}
+.act-submit-btn:hover{background:#3a7de8}
+.act-submit-btn.resubmit{background:var(--amber-dim);color:var(--amber);border:1px solid rgba(251,191,36,.3)}
+.act-submit-btn.resubmit:hover{background:var(--amber);color:#000}
+.page{display:none}
+.page.active{display:block}
+.setup-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:500;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+.setup-overlay.open{display:flex}
+.setup-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:32px 36px;width:100%;max-width:420px;box-shadow:var(--shadow-lg)}
+.setup-title{font-size:20px;font-weight:700;color:var(--text);margin-bottom:4px}
+.setup-sub{font-size:12px;color:var(--text-3);margin-bottom:24px;line-height:1.6}
+.setup-form{display:flex;flex-direction:column;gap:14px}
+.setup-label{font-size:10px;font-weight:500;color:var(--text-2);margin-bottom:4px;display:block;font-family:'DM Mono',monospace;letter-spacing:.07em;text-transform:uppercase}
+.setup-input{width:100%;font-size:13px;padding:9px 11px;border:1px solid var(--border-light);border-radius:var(--radius-sm);background:var(--surface2);color:var(--text);font-family:'Sora',sans-serif;outline:none;transition:border-color .15s}
+.setup-input:focus{border-color:var(--accent)}
+.setup-btn{width:100%;padding:10px;border-radius:var(--radius-sm);font-size:13px;font-family:'Sora',sans-serif;font-weight:600;cursor:pointer;border:none;background:var(--accent);color:#fff;margin-top:4px;transition:background .15s}
+.setup-btn:hover{background:#3a7de8}
+#toast{position:fixed;bottom:24px;right:24px;background:var(--surface);border:1px solid var(--border-light);color:var(--text);padding:10px 16px;border-radius:var(--radius-sm);font-size:12px;z-index:999;box-shadow:var(--shadow-lg);opacity:0;transition:opacity .3s;pointer-events:none;max-width:320px}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border-light);border-radius:3px}
+</style>
+</head>
+<body>
+
+<div class="setup-overlay" id="setupOverlay">
+  <div class="setup-card">
+    <div class="setup-title">Welcome to FETP</div>
+    <div class="setup-sub">27th Cohort · Frontline for Veterinary<br>Set up your profile to get started</div>
+    <div class="setup-form">
+      <div><label class="setup-label">Full name</label><input class="setup-input" id="setupName" placeholder="e.g. Dr. Ali Hassan"></div>
+      <div><label class="setup-label">District</label><input class="setup-input" id="setupDistrict" placeholder="e.g. Lahore"></div>
+      <div><label class="setup-label">Contact number</label><input class="setup-input" id="setupContact" placeholder="e.g. +92 300 1234567" type="tel"></div>
+      <div><label class="setup-label">Email address</label><input class="setup-input" id="setupEmail" placeholder="e.g. ali.hassan@example.com" type="email"></div>
+      <div><label class="setup-label">Mentor's name</label><input class="setup-input" id="setupMentor" placeholder="e.g. Dr. Amara Diallo"></div>
+      <button class="setup-btn" onclick="saveSetup()">Start dashboard</button>
+    </div>
+  </div>
+</div>
+
+<header class="header">
+  <div class="header-brand">
+    <div class="brand-badge">FE</div>
+    <div><div class="brand-name">FETP Mentee</div><div class="brand-sub">27th Cohort · Frontline for Veterinary</div></div>
+  </div>
+  <div class="user-pill"><div class="user-avatar" id="headerAvatar">?</div><div class="user-name" id="headerName">—</div></div>
+  <div class="header-actions">
+    <div class="sync-indicator"><div class="sync-dot" id="syncDot"></div><span id="syncLabel">Not synced</span></div>
+    <button class="hbtn hbtn-primary" id="syncBtn" onclick="syncToSheet()">☁ Sync</button>
+    <button class="hbtn" onclick="exportData()" title="Download backup">↓ Backup</button>
+    <input type="file" id="importFile" accept=".json" style="display:none" onchange="handleImport(event)">
+    <button class="hbtn" onclick="document.getElementById('importFile').click()" title="Restore from backup">↑ Restore</button>
+    <button class="hbtn" onclick="openSettings()">⚙</button>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="sidebar">
+    <div class="sb-label">Field Intervals</div>
+    <button class="sb-btn active" id="btn-fi1" onclick="showInterval('fi1')">
+      <span style="font-size:15px">①</span>
+      <div class="sb-info"><div class="sb-name">Field Interval 1</div><div class="sb-pct" id="sb-fi1-pct">0% complete</div></div>
+    </button>
+    <button class="sb-btn" id="btn-fi2" onclick="showInterval('fi2')">
+      <span style="font-size:15px">②</span>
+      <div class="sb-info"><div class="sb-name">Field Interval 2</div><div class="sb-pct" id="sb-fi2-pct">0% complete</div></div>
+    </button>
+    <div class="sb-label">Summary</div>
+    <button class="sb-btn" id="btn-overview" onclick="showOverview()">
+      <span>📊</span>
+      <div class="sb-info"><div class="sb-name">My progress</div></div>
+    </button>
+  </nav>
+
+  <main class="main">
+    <div class="page active" id="page-fi1">
+      <div class="section-head">
+        <div><div class="section-title">Field Interval 1</div><div class="section-sub">Complete tasks, add evidence and submit each activity for mentor review</div></div>
+        <div style="font-size:24px;font-weight:700;color:var(--accent)" id="fi1-pct-head">0%</div>
+      </div>
+      <div id="fi1-activities"></div>
+    </div>
+    <div class="page" id="page-fi2">
+      <div class="section-head">
+        <div><div class="section-title">Field Interval 2</div><div class="section-sub">Complete tasks, add evidence and submit each activity for mentor review</div></div>
+        <div style="font-size:24px;font-weight:700;color:var(--accent)" id="fi2-pct-head">0%</div>
+      </div>
+      <div id="fi2-activities"></div>
+    </div>
+    <div class="page" id="page-overview">
+      <div class="section-head"><div><div class="section-title">My Progress</div><div class="section-sub">Overview across all field intervals</div></div></div>
+      <div class="ov-grid" id="ovGrid"></div>
+      <div id="ovDetail"></div>
+    </div>
+  </main>
+</div>
+<div id="toast"></div>
+
+<script>
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwS7ijO4AlNzPHzvug-dpR0AOQ3YwWftftrSoPrMcw34hoqf_mwBC-OiRnPtsJXlQqJ/exec';
+
+const ACTIVITIES={fi1:[
+  {id:'fi1a1',title:'Weekly surveillance summary report',phases:{
+    before:['Identify diseases to track','Understand blanks vs zero reporting','Determine which diseases to graph','Plan how to obtain 3 weeks of historical data','Develop a time management plan','Consider workshop goals while planning'],
+    during:['Check data completeness and accuracy','Find ways to increase facility response','Ensure zero reporting for immediately reportable diseases','Develop graphs and charts (paper or Excel)','Accurately calculate case fatality rates','Make conclusions based on the data','Monitor quality with Weekly Surveillance Report Scorecard'],
+    after:['Take action for immediately reportable diseases','Identify noteworthy events for report comments','Summarise quality and timeliness of facility reporting','Set priorities for public health recommendations','Finalise figures and analysis for Workshop 2','Ensure Workshop 2 presentation is under 30 minutes','Assess quality with Scorecard and feedback']}},
+  {id:'fi1a2',title:'Data quality audit & SWOT analysis',phases:{
+    before:['Identify priority questions in Data Quality Audit Worksheet','Understand logistics for planning a site visit','Determine best audit methods','Consider workshop goals while planning'],
+    during:['Review activities after the first visit to identify improvements','Check logbook review skills','Troubleshoot problems during visits','Monitor quality using Data Quality Audit Scorecard'],
+    after:['Use SWOT tool to analyse key findings','Reflect on causes and possible solutions','Determine how and to whom to communicate findings','Prepare Data Quality Audit Report for Workshop 2','Prepare oral presentation under 30 minutes','Assess quality with Scorecard and feedback']}},
+  {id:'fi1a3',title:'One Health surveillance summary table',phases:{
+    before:['Contact mentor and staff from other sector(s)','Obtain data-sharing permissions','Coordinate data format and site visits if needed','Select diseases or conditions to include','Decide time frame and locations for data'],
+    during:['Combine data sources and select variables','Design tabulation and display of data','Summarise and analyse data; draw inferences','Monitor quality with One Health Surveillance Table Scorecard'],
+    after:['Support report writing','Decide if table will be in Weekly Surveillance Report','Ensure all participating sectors are informed of results','Recommend how table can support decision-making','Assess quality with Scorecard and feedback']}},
+  {id:'fi1a4',title:'Display surveillance data',phases:{
+    before:['Discuss the importance of displaying public health data with leadership'],
+    during:['Select appropriate tables, graphs and maps for display','Ensure One Health topics are included','Monitor quality using PowerPoint Presentation Scorecard'],
+    after:['Develop a plan for updating displayed materials','Assess quality with Scorecard and feedback']}},
+  {id:'fi1a5',title:'Cross-sector site visit (optional)',phases:{
+    before:['Select a site from another sector to visit','Plan the visit by contacting the other sector mentor','Obtain appropriate permissions','Coordinate logistics for multiple trainees'],
+    during:['Attend the visit','Complete the site visit form','Meet and discuss with all key staff','Monitor quality with Cross-sector Site Visit Scorecard'],
+    after:['Review information collected during the visit','Compare surveillance systems and note applicable practices','Prepare your site visit report','Assess quality with Scorecard and feedback']}}
+],fi2:[
+  {id:'fi2a1',title:'Weekly report + timeliness & completion',phases:{
+    before:['Develop a time management plan','Determine which diseases to track and graph','Identify cross-sector collaborators (One Health option)'],
+    during:['Check data for completeness and accuracy','Develop graphs and charts','Identify patterns and trends in the data','Make inferences based on the data','Identify noteworthy events for report comments','Finalise the report','Monitor quality with Weekly Surveillance Report Scorecard'],
+    after:['Ensure report is distributed to other sectors','Prepare Workshop 3 presentation from this report','Assess quality with Scorecard and feedback']}},
+  {id:'fi2a2',title:'Surveillance quality problem analysis',phases:{
+    before:['Review SWOT results to identify a weakness for in-depth analysis','Identify personnel who could assist','Involve other-sector personnel if problem is cross-sectoral'],
+    during:['Facilitate the problem analysis session if needed','Use the fishbone diagram correctly','Apply TPN (Totally/Partially/Not) determination correctly','Develop recommendations based on the analysis','Monitor quality with Surveillance Quality Problem Analysis Scorecard'],
+    after:['Complete the analysis and report','Develop a plan to communicate results to relevant stakeholders','Identify key points for Workshop 3 presentation','Assess quality with Scorecard and feedback']}},
+  {id:'fi2a3',title:'Case investigation',phases:{
+    before:['Interpret suspect surveillance data brought to your attention','Help locate appropriate case investigation forms','Identify potential cultural or language barriers'],
+    during:['Review case investigation forms and provide suggestions','Contact laboratory and other sectors if appropriate','Provide guidance during case interviews','Monitor quality with Case Investigation Scorecard'],
+    after:['Help develop a hypothesis','Determine who should be notified about the case','Help develop the case report','Assess quality with Scorecard and feedback','Identify key points for Workshop 3 presentation']}},
+  {id:'fi2a4',title:'Outbreak investigation',phases:{
+    before:['Determine whether to maintain a logbook of suspected outbreaks','Decide if a formal investigation is warranted','Conduct a literature review if needed','Clarify your role on the investigation team','Coordinate with partner agencies including the laboratory'],
+    during:['Follow applicable steps of the outbreak investigation','Review descriptive epidemiology performed','Ensure hypothesis contains outcome and exposure variables','Monitor quality with Outbreak Investigation Report Scorecard'],
+    after:['Help develop the investigation report','Summarise recommendations','Determine communication methods for recommendations','Identify key points for Workshop 3 presentation','Evaluate team work with Scorecard and feedback']}}
+]};
+
+let profile={name:'',district:'',contact:'',email:'',mentorName:''};
+let items={};
+let actStatus={};
+let currentInterval='fi1';
+
+function allActs(){return[...ACTIVITIES.fi1,...ACTIVITIES.fi2];}
+function initials(n){return(n||'').split(' ').filter(Boolean).map(w=>w[0]).join('').slice(0,2).toUpperCase()||'?';}
+function actProgress(actId){
+  const act=allActs().find(a=>a.id===actId);if(!act)return 0;
+  let total=0,done=0;
+  ['before','during','after'].forEach(ph=>(act.phases[ph]||[]).forEach((_,i)=>{total++;if(items[actId+'_'+ph+'_'+i]?.checked)done++;}));
+  return total?Math.round(done/total*100):0;
+}
+function intervalPct(iv){const acts=ACTIVITIES[iv];return Math.round(acts.map(a=>actProgress(a.id)).reduce((s,v)=>s+v,0)/acts.length);}
+function overallPct(){return Math.round((intervalPct('fi1')+intervalPct('fi2'))/2);}
+
+function showToast(msg,dur=3000){const el=document.getElementById('toast');el.textContent=msg;el.style.opacity='1';clearTimeout(el._t);el._t=setTimeout(()=>el.style.opacity='0',dur);}
+function setSyncState(state,label){const d=document.getElementById('syncDot'),l=document.getElementById('syncLabel');if(d)d.className='sync-dot '+state;if(l)l.textContent=label;}
+
+function saveSetup(){
+  const name=document.getElementById('setupName').value.trim();
+  const district=document.getElementById('setupDistrict').value.trim();
+  const contact=document.getElementById('setupContact').value.trim();
+  const email=document.getElementById('setupEmail').value.trim();
+  const mentor=document.getElementById('setupMentor').value.trim();
+  if(!name||!mentor){alert('Please enter your name and your mentor\'s name.');return;}
+  profile={name,district,contact,email,mentorName:mentor};
+  document.getElementById('setupOverlay').classList.remove('open');
+  saveLocal();renderHeader();renderAll();showInterval('fi1');
+  showToast('Welcome, '+name+'!');
+}
+
+function openSettings(){
+  document.getElementById('setupName').value=profile.name;
+  document.getElementById('setupDistrict').value=profile.district||'';
+  document.getElementById('setupContact').value=profile.contact||'';
+  document.getElementById('setupEmail').value=profile.email||'';
+  document.getElementById('setupMentor').value=profile.mentorName;
+  document.getElementById('setupOverlay').classList.add('open');
+}
+
+function renderHeader(){
+  document.getElementById('headerName').textContent=profile.name||'—';
+  document.getElementById('headerAvatar').textContent=initials(profile.name);
+}
+
+function showInterval(iv){
+  currentInterval=iv;
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.sb-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+iv).classList.add('active');
+  document.getElementById('btn-'+iv).classList.add('active');
+  renderInterval(iv);
+}
+
+function showOverview(){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.sb-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-overview').classList.add('active');
+  document.getElementById('btn-overview').classList.add('active');
+  renderOverview();
+}
+
+function renderOverview(){
+  const fi1=intervalPct('fi1'),fi2=intervalPct('fi2'),overall=overallPct();
+  const approved=Object.values(actStatus).filter(s=>s==='approved').length;
+  const submitted=Object.values(actStatus).filter(s=>s==='submitted').length;
+  document.getElementById('ovGrid').innerHTML=`
+    <div class="ov-card"><div class="ov-label">Overall</div><div class="ov-val" style="color:var(--accent)">${overall}%</div><div class="ov-sub">completion</div></div>
+    <div class="ov-card"><div class="ov-label">FI 1</div><div class="ov-val">${fi1}%</div><div class="ov-sub">complete</div></div>
+    <div class="ov-card"><div class="ov-label">FI 2</div><div class="ov-val">${fi2}%</div><div class="ov-sub">complete</div></div>
+    <div class="ov-card"><div class="ov-label">Approved</div><div class="ov-val" style="color:var(--green)">${approved}</div><div class="ov-sub">${submitted} awaiting review</div></div>`;
+  let html='';
+  ['fi1','fi2'].forEach(iv=>{
+    html+=`<div style="margin:20px 0 8px;font-size:11px;font-family:'DM Mono',monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--text-3);border-bottom:1px solid var(--border);padding-bottom:8px">Field Interval ${iv==='fi1'?'1':'2'}</div>`;
+    ACTIVITIES[iv].forEach(act=>{
+      const pct=actProgress(act.id);const st=actStatus[act.id]||'pending';
+      const cc=st==='approved'?'chip-approved':st==='submitted'?'chip-submitted':'chip-pending';
+      const cl=st==='approved'?'✓ Approved':st==='submitted'?'⏳ Awaiting review':'In progress';
+      html+=`<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
+        <span style="font-size:12px;color:var(--text);flex:1">${act.title}</span>
+        <div class="mini-bar" style="width:80px"><div class="mini-fill" style="width:${pct}%"></div></div>
+        <span style="font-size:11px;color:var(--text-3);font-family:'DM Mono',monospace;width:36px;text-align:right">${pct}%</span>
+        <span class="status-chip ${cc}">${cl}</span>
+      </div>`;
+    });
+  });
+  document.getElementById('ovDetail').innerHTML=html;
+}
+
+function renderInterval(iv){
+  const container=document.getElementById(iv+'-activities');
+  const pct=intervalPct(iv);
+  const head=document.getElementById(iv+'-pct-head');if(head)head.textContent=pct+'%';
+  const sbpct=document.getElementById('sb-'+iv+'-pct');if(sbpct)sbpct.textContent=pct+'% complete';
+  if(!container)return;
+  container.innerHTML='';
+  ACTIVITIES[iv].forEach(act=>container.appendChild(buildActCard(act)));
+}
+
+function buildActCard(act){
+  const pct=actProgress(act.id);
+  const st=actStatus[act.id]||'pending';
+  const dotColor=st==='approved'?'var(--green)':st==='submitted'?'var(--amber)':pct>0?'var(--accent)':'var(--border-light)';
+  const chipClass=st==='approved'?'chip-approved':st==='submitted'?'chip-submitted':'chip-pending';
+  const avgScore=items[act.id+'_score']?.avgScore;
+  const chipLabel=st==='approved'
+    ?(avgScore?'★ Scored: '+avgScore+'/5':'✓ Reviewed')
+    :st==='submitted'?'⏳ Awaiting review':'In progress';
+  const isApproved=st==='approved';
+
+  const card=document.createElement('div');
+  card.className='act-card';card.id='act-card-'+act.id;
+
+  let phasesHtml='';
+  ['before','during','after'].forEach(ph=>{
+    const phItems=act.phases[ph]||[];if(!phItems.length)return;
+    const phTagClass=ph==='before'?'ptag-before':ph==='during'?'ptag-during':'ptag-after';
+    const phLabel=ph.charAt(0).toUpperCase()+ph.slice(1);
+    const doneCount=phItems.filter((_,i)=>items[act.id+'_'+ph+'_'+i]?.checked).length;
+    phasesHtml+=`<div class="phase-block"><div class="phase-head"><span class="phase-tag ${phTagClass}">${phLabel}</span><span class="phase-count">${doneCount}/${phItems.length}</span></div>`;
+    phItems.forEach((text,i)=>{
+      const key=act.id+'_'+ph+'_'+i;
+      const it=items[key]||{};
+      const starsHtml=it.score?'★'.repeat(it.score)+'☆'.repeat(5-it.score):'';
+      const filesHtml=buildFilesHtml(key,isApproved);
+      const mfHtml=buildMentorFeedbackHtml(it);
+      phasesHtml+=`<div class="item-row" id="itemrow-${key}">
+        <div class="item-main" onclick="toggleItemExpand('${key}')">
+          <input type="checkbox" class="item-cb" id="cb-${key}" ${it.checked?'checked':''} ${isApproved?'disabled':''} onclick="event.stopPropagation();toggleItem('${act.id}','${ph}',${i})">
+          <span class="item-text${it.checked?' done':''}" id="itmtxt-${key}">${text}</span>
+          ${starsHtml?`<span class="item-stars">${starsHtml}</span>`:''}
+          <span class="item-expand-icon" id="expicon-${key}">▼</span>
+        </div>
+        <div class="item-detail" id="itemdet-${key}">
+          <div class="ev-label">Remarks / comments</div>
+          <textarea class="ev-textarea" id="remark-${key}" placeholder="Add your remarks or comments…" ${isApproved?'disabled':''} oninput="saveRemark('${key}',this.value)">${it.remark||''}</textarea>
+          <div class="ev-label">Evidence / attachments</div>
+          ${!isApproved?`<div class="upload-zone" onclick="document.getElementById('upl-${key}').click()">
+            <input type="file" id="upl-${key}" multiple accept=".pdf,.doc,.docx,.png,.jpg,.jpeg" onchange="handleFileUpload('${key}',this)">
+            <div class="upload-text">Click to attach evidence &nbsp;·&nbsp; <span>PDF, Word, Images</span></div>
+            <div style="font-size:10px;color:var(--text-3);margin-top:2px">Files upload to Google Drive immediately</div>
+          </div>`:''}
+          <div class="file-list" id="flist-${key}">${filesHtml}</div>
+          ${mfHtml}
+        </div>
+      </div>`;
+    });
+    phasesHtml+='</div>';
+  });
+
+  const submitHtml=isApproved
+    ?`<span style="font-size:12px;color:var(--green);font-weight:600">✓ Approved by mentor</span>`
+    :`<button class="act-submit-btn ${st==='submitted'?'resubmit':''}" id="submitbtn-${act.id}" onclick="submitActivity('${act.id}')">${st==='submitted'?'Resubmit':'Submit for review'}</button>`;
+
+  card.innerHTML=`
+    <div class="act-strip"><div class="act-strip-fill" id="strip-${act.id}" style="width:${pct}%"></div></div>
+    <div class="act-head" onclick="toggleActCard('${act.id}')">
+      <div class="act-status" style="background:${dotColor}" id="dot-${act.id}"></div>
+      <span class="act-title-text">${act.title}</span>
+      <span class="act-pct-text" id="actpct-${act.id}">${pct}%</span>
+      <div class="mini-bar"><div class="mini-fill" id="actmini-${act.id}" style="width:${pct}%"></div></div>
+      <span class="status-chip ${chipClass}" id="chip-${act.id}">${chipLabel}</span>
+      <span class="chevron" id="chev-${act.id}">▼</span>
+    </div>
+    <div class="act-body" id="actbody-${act.id}">
+      ${phasesHtml}
+      <div class="submit-section">
+        <div class="submit-status${st==='approved'?' approved':st==='submitted'?' submitted':''}" id="substat-${act.id}">
+          ${isApproved?(items[act.id+'_score']?.avgScore?'★ Mentor reviewed — avg score: '+items[act.id+'_score'].avgScore+'/5':'✓ Reviewed by mentor'):st==='submitted'?'Submitted — awaiting mentor review':'Complete tasks then submit for mentor review'}
+        </div>
+        ${submitHtml}
+      </div>
+    </div>`;
+  return card;
+}
+
+function buildFilesHtml(key,isApproved){
+  const it=items[key]||{};
+  if(!it.files||!it.files.length)return'';
+  return it.files.map((f,fi)=>{
+    const icon=f.name.match(/\.pdf$/i)?'📄':f.name.match(/\.docx?$/i)?'📝':'🖼️';
+    const nameHtml=f.driveUrl
+      ?`<a href="${f.driveUrl}" target="_blank" style="color:var(--accent);text-decoration:none">${f.name}</a>`
+      :f.uploading?`<span style="color:var(--amber)">${f.name} (uploading…)</span>`
+      :f.error?`<span style="color:var(--red)">${f.name} (upload failed)</span>`
+      :f.name;
+    return`<div class="file-item"><span class="file-icon">${icon}</span><span class="file-name">${nameHtml}</span><span class="file-size">${f.size?Math.round(f.size/1024)+'KB':''}</span>${!isApproved?`<button class="file-remove" onclick="removeFile('${key}',${fi})">✕</button>`:''}</div>`;
+  }).join('');
+}
+
+function buildMentorFeedbackHtml(it){
+  if(!it||(!it.score&&!it.mentorFeedback))return'';
+  const stars='★'.repeat(it.score||0)+'☆'.repeat(5-(it.score||0));
+  return`<div class="mentor-feedback"><div class="mf-header"><span class="mf-badge">Mentor feedback</span><span class="mf-stars">${stars}</span></div>${it.mentorFeedback?`<div class="mf-comment">"${it.mentorFeedback}"</div>`:''}</div>`;
+}
+
+function toggleActCard(id){
+  const b=document.getElementById('actbody-'+id),c=document.getElementById('chev-'+id);
+  if(b){const o=b.classList.toggle('open');if(c)c.classList.toggle('open',o);}
+}
+function toggleItemExpand(key){
+  const d=document.getElementById('itemdet-'+key),i=document.getElementById('expicon-'+key);
+  if(d){const o=d.classList.toggle('open');if(i)i.classList.toggle('open',o);}
+}
+function toggleItem(actId,ph,idx){
+  const key=actId+'_'+ph+'_'+idx;
+  const cb=document.getElementById('cb-'+key);
+  if(!items[key])items[key]={};
+  items[key].checked=cb.checked;
+  const lbl=document.getElementById('itmtxt-'+key);
+  if(lbl)lbl.className='item-text'+(cb.checked?' done':'');
+  updateActProgress(actId);saveLocal();
+}
+function saveRemark(key,val){if(!items[key])items[key]={};items[key].remark=val;saveLocal();}
+function handleFileUpload(key,input){
+  if(!items[key])items[key]={};if(!items[key].files)items[key].files=[];
+  const newFiles=Array.from(input.files);
+  if(!newFiles.length){input.value='';return;}
+  showToast('Uploading '+newFiles.length+' file(s) to Drive…');
+
+  // Upload each file immediately to Drive
+  async function uploadAll(){
+    const parts=key.split('_');
+    const itemIndex=parts.pop();
+    const phase=parts.pop();
+    const activityId=parts.join('_');
+
+    for(const file of newFiles){
+      // Add placeholder immediately so user sees it
+      const placeholder={name:file.name,size:file.size,driveUrl:'',uploading:true};
+      items[key].files.push(placeholder);
+      const fi=items[key].files.length-1;
+      const isApproved=actStatus[activityId]?.includes('approved');
+      document.getElementById('flist-'+key).innerHTML=buildFilesHtml(key,isApproved);
+
+      try{
+        const base64=await new Promise((res,rej)=>{
+          const r=new FileReader();
+          r.onload=e=>res(e.target.result.split(',')[1]);
+          r.onerror=rej;
+          r.readAsDataURL(file);
+        });
+        const resp=await fetch(SCRIPT_URL,{method:'POST',headers:{'Content-Type':'text/plain'},
+          body:JSON.stringify({action:'uploadFile',data:{
+            menteeName:profile.name,mentorName:profile.mentorName,
+            activityId,phase,itemIndex,
+            fileName:file.name,mimeType:file.type||'application/octet-stream',
+            fileBase64:base64
+          }})
+        });
+        const result=await resp.json();
+        if(result.success){
+          items[key].files[fi].driveUrl=result.fileUrl;
+          items[key].files[fi].uploading=false;
+          showToast('✓ '+file.name+' uploaded to Drive');
+        } else {
+          items[key].files[fi].error=true;
+          items[key].files[fi].uploading=false;
+          showToast('Upload failed: '+file.name);
+        }
+      }catch(err){
+        items[key].files[fi].error=true;
+        items[key].files[fi].uploading=false;
+        showToast('Upload error: '+file.name);
+      }
+      document.getElementById('flist-'+key).innerHTML=buildFilesHtml(key,isApproved);
+      saveLocal();
+    }
+  }
+  uploadAll();
+  input.value='';
+}
+function removeFile(key,idx){
+  if(items[key]?.files)items[key].files.splice(idx,1);
+  document.getElementById('flist-'+key).innerHTML=buildFilesHtml(key,false);
+  saveLocal();
+}
+function updateActProgress(actId){
+  const pct=actProgress(actId);
+  const s=document.getElementById('strip-'+actId),m=document.getElementById('actmini-'+actId),p=document.getElementById('actpct-'+actId);
+  if(s)s.style.width=pct+'%';if(m)m.style.width=pct+'%';if(p)p.textContent=pct+'%';
+  const iv=ACTIVITIES.fi1.find(a=>a.id===actId)?'fi1':'fi2';
+  const ip=intervalPct(iv);
+  const sbp=document.getElementById('sb-'+iv+'-pct'),hd=document.getElementById(iv+'-pct-head');
+  if(sbp)sbp.textContent=ip+'% complete';if(hd)hd.textContent=ip+'%';
+}
+function submitActivity(actId){
+  if(actProgress(actId)===0){showToast('Please complete at least one task before submitting.');return;}
+  actStatus[actId]='submitted';
+  if(!items[actId+'_submitted'])items[actId+'_submitted']={};
+  items[actId+'_submitted'].submittedAt=new Date().toISOString();
+  saveLocal();
+  const iv=ACTIVITIES.fi1.find(a=>a.id===actId)?'fi1':'fi2';
+  renderInterval(iv);setTimeout(()=>toggleActCard(actId),80);
+  showToast('Activity submitted for mentor review!');
+}
+
+function syncToSheet(){
+  if(!SCRIPT_URL||SCRIPT_URL==='PASTE_YOUR_APPS_SCRIPT_URL_HERE'){alert('Google Sheets sync not configured. Please contact your program coordinator.');return;}
+  if(!profile.name){showToast('Please complete your setup first.');return;}
+  setSyncState('syncing','Syncing…');
+  document.getElementById('syncBtn').disabled=true;
+  const payload={action:'syncMentee',data:{
+    name:profile.name,district:profile.district,contact:profile.contact,email:profile.email,
+    mentorName:profile.mentorName,
+    items:Object.fromEntries(Object.entries(items).map(([k,v])=>[k,{checked:v.checked,remark:v.remark,
+      files:(v.files||[]).map(f=>({name:f.name,size:f.size,driveUrl:f.driveUrl||''})),
+      score:v.score,mentorFeedback:v.mentorFeedback,approvedAt:v.approvedAt}])),actStatus}};
+  fetch(SCRIPT_URL,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(payload)})
+  .then(r=>r.json())
+  .then(data=>{
+    if(data.success){
+      if(data.mentorUpdates){
+        Object.entries(data.mentorUpdates).forEach(([k,md])=>{
+          if(!items[k])items[k]={};
+          Object.assign(items[k],md);
+        });
+        // Mark activity as 'scored' if any items in it have a mentor score
+        // Group scored items by actId
+        const scoredActs={};
+        Object.entries(data.mentorUpdates).forEach(([k,md])=>{
+          if(md.score){
+            const parts=k.split('_');parts.pop();parts.pop();
+            const actId=parts.join('_');
+            if(!scoredActs[actId])scoredActs[actId]={total:0,count:0};
+            scoredActs[actId].total+=md.score;
+            scoredActs[actId].count++;
+          }
+        });
+        Object.entries(scoredActs).forEach(([actId,sc])=>{
+          actStatus[actId]='approved';
+          // Store cumulative score on the activity
+          if(!items[actId+'_score'])items[actId+'_score']={};
+          items[actId+'_score'].avgScore=Math.round(sc.total/sc.count*10)/10;
+          items[actId+'_score'].scoredCount=sc.count;
+        });
+      }
+      profile.lastSync=new Date().toISOString();saveLocal();
+      const t=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+      setSyncState('synced','Synced '+t);showToast('✓ Synced to Google Sheet');
+      if(currentInterval)renderInterval(currentInterval);
+    }else{setSyncState('error','Sync failed');showToast('Sync failed: '+(data.error||'Unknown error'));}
+  })
+  .catch(err=>{setSyncState('error','Error');showToast('Sync error: '+err.message);})
+  .finally(()=>{document.getElementById('syncBtn').disabled=false;});
+}
+
+function saveLocal(){try{localStorage.setItem('fetp_mentee_v2',JSON.stringify({profile,items,actStatus}));}catch(e){}}
+function loadLocal(){
+  try{
+    const raw=localStorage.getItem('fetp_mentee_v2');if(!raw)return false;
+    const d=JSON.parse(raw);if(!d.profile?.name)return false;
+    profile=d.profile;items=d.items||{};actStatus=d.actStatus||{};return true;
+  }catch(e){return false;}
+}
+function exportData(){
+  const blob=new Blob([JSON.stringify({profile,items,actStatus},null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=url;a.download='fetp_mentee_'+(profile.name||'data').replace(/\s+/g,'_')+'_'+new Date().toISOString().slice(0,10)+'.json';
+  a.click();URL.revokeObjectURL(url);
+}
+function handleImport(e){
+  const file=e.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    try{
+      const d=JSON.parse(ev.target.result);if(!d.profile?.name)throw new Error('Invalid file');
+      if(!confirm('Restore data for '+d.profile.name+'? This replaces current data.'))return;
+      profile=d.profile;items=d.items||{};actStatus=d.actStatus||{};
+      saveLocal();renderHeader();renderAll();showToast('Data restored for '+profile.name);
+    }catch(err){alert('Could not read file: '+err.message);}
+    e.target.value='';
+  };reader.readAsText(file);
+}
+function renderAll(){renderHeader();renderInterval('fi1');renderInterval('fi2');}
+
+function recalcActStatusFromScores(){
+  // On load, mark activities as approved if they have scored items
+  allActs().forEach(act=>{
+    let hasScore=false;let total=0;let count=0;
+    ['before','during','after'].forEach(ph=>(act.phases[ph]||[]).forEach((_,i)=>{
+      const it=items[act.id+'_'+ph+'_'+i];
+      if(it?.score){hasScore=true;total+=it.score;count++;}
+    }));
+    if(hasScore){
+      actStatus[act.id]='approved';
+      if(!items[act.id+'_score'])items[act.id+'_score']={};
+      items[act.id+'_score'].avgScore=Math.round(total/count*10)/10;
+      items[act.id+'_score'].scoredCount=count;
+    }
+  });
+}
+
+// Pre-configured profile
+const PRE_PROFILE = {"name": "Dr Shoib Ahmed", "district": "Dadu", "contact": "0314-2680806", "email": "shoaibpanhwar127@gmail.com", "mentorName": "Dr Khushal Kasi / Mr Ahmed Ali"};
+
+// Init
+if(loadLocal()&&profile.name){
+  recalcActStatusFromScores();renderHeader();renderAll();showInterval('fi1');
+  if(profile.lastSync){const t=new Date(profile.lastSync).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});setSyncState('synced','Last sync '+t);}
+} else {
+  profile = PRE_PROFILE;
+  saveLocal();
+  renderHeader();renderAll();showInterval('fi1');
+  showToast('Welcome, '+profile.name+'!');
+}
+</script>
+</body>
+</html>
