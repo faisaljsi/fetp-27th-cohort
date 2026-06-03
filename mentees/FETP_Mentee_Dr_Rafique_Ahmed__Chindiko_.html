@@ -549,7 +549,10 @@ function syncToSheet(){
             fileBase64:base64
           }})
         });
-        const result=await resp.json();
+        const rawText = await resp.text();
+	console.log("UPLOAD RESPONSE:", rawText);
+
+	const result = JSON.parse(rawText);
         if(result.success){
           items[u.key].files[u.fi].driveUrl=result.fileUrl;
           delete items[u.key].files[u.fi]._file;
