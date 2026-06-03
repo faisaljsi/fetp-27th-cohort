@@ -210,7 +210,7 @@ body{font-family:'Sora',sans-serif;background:var(--bg);color:var(--text);font-s
 <div id="toast"></div>
 
 <script>
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwEDKsn1DeRoIIxlomLam8p966fIkqTHWYR0S1BXfsFheP-4whDifChpOyroIC8DDc/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbypdCGAu_TIbWeS-ZjXnGDOne1T_T3Z13ZNuWj3kI0KIrunhzCmoUb8-tmR7GHTeugl/exec';
 
 const ACTIVITIES={fi1:[
   {id:'fi1a1',title:'Weekly surveillance summary report',phases:{
@@ -515,7 +515,8 @@ function syncToSheet(){
   const pending=[];
   Object.entries(items).forEach(([key,item])=>{
     (item.files||[]).forEach((f,fi)=>{
-      if(f._file){
+      // Only upload if file object exists AND no driveUrl yet
+      if(f._file&&!f.driveUrl){
         const parts=key.split('_');
         const itemIndex=parts.pop();
         const phase=parts.pop();
@@ -552,9 +553,14 @@ function syncToSheet(){
         if(result.success){
           items[u.key].files[u.fi].driveUrl=result.fileUrl;
           delete items[u.key].files[u.fi]._file;
+          // Refresh file list UI immediately after each upload
+          const isApproved=actStatus[u.activityId]?.includes('approved');
+          const flistEl=document.getElementById('flist-'+u.key);
+          if(flistEl)flistEl.innerHTML=buildFilesHtml(u.key,isApproved);
         }
       }catch(err){console.warn('File upload failed:',u.file.name,err);}
     }
+    saveLocal();
 
     // Step 2: sync checklist
     setSyncState('syncing','Syncing…');
@@ -606,7 +612,19 @@ function syncToSheet(){
   .finally(()=>{document.getElementById('syncBtn').disabled=false;});
 }
 
-function saveLocal(){try{localStorage.setItem('fetp_mentee_v2',JSON.stringify({profile,items,actStatus}));}catch(e){}}
+function saveLocal(){
+  try{
+    // Strip _file objects before saving (not JSON serializable)
+    const cleanItems={};
+    Object.entries(items).forEach(([k,v])=>{
+      cleanItems[k]={...v};
+      if(cleanItems[k].files){
+        cleanItems[k].files=cleanItems[k].files.map(f=>({name:f.name,size:f.size,driveUrl:f.driveUrl||''}));
+      }
+    });
+    localStorage.setItem('fetp_mentee_v2',JSON.stringify({profile,items:cleanItems,actStatus}));
+  }catch(e){}
+}
 function loadLocal(){
   try{
     const raw=localStorage.getItem('fetp_mentee_v2');if(!raw)return false;
