@@ -551,7 +551,7 @@ function submitActivity(actId){
 }
 
 function syncToSheet(){
-  if(!SCRIPT_URL||SCRIPT_URL==='https://script.google.com/macros/s/AKfycbwEDKsn1DeRoIIxlomLam8p966fIkqTHWYR0S1BXfsFheP-4whDifChpOyroIC8DDc/exec'){alert('Google Sheets sync not configured. Please contact your program coordinator.');return;}
+  if(!SCRIPT_URL||SCRIPT_URL==='PASTE_YOUR_APPS_SCRIPT_URL_HERE'){alert('Google Sheets sync not configured. Please contact your program coordinator.');return;}
   if(!profile.name){showToast('Please complete your setup first.');return;}
   setSyncState('syncing','Syncing…');
   document.getElementById('syncBtn').disabled=true;
