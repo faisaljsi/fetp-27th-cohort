@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FETP Lead Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,600;1,9..144,300&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0e0f14;--surface:#161820;--surface2:#1c1e2a;--surface3:#222538;
+  --border:#2a2d42;--border-light:#343854;
+  --text:#e8eaf5;--text-2:#8b90b8;--text-3:#4a4f70;
+  --accent:#5b8dee;--accent-dim:rgba(91,141,238,.12);--accent-glow:rgba(91,141,238,.25);
+  --green:#34c98a;--green-dim:rgba(52,201,138,.12);
+  --amber:#f5a623;--amber-dim:rgba(245,166,35,.12);
+  --red:#f06060;--red-dim:rgba(240,96,96,.12);
+  --purple:#a78bfa;--purple-dim:rgba(167,139,250,.12);
+  --radius:14px;--radius-sm:8px;--radius-xs:5px;
+  --shadow:0 2px 12px rgba(0,0,0,.4);--shadow-lg:0 8px 40px rgba(0,0,0,.6);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.6;min-height:100vh}
+
+/* ── Header ── */
+.header{background:var(--surface);border-bottom:1px solid var(--border);padding:0 28px;height:60px;display:flex;align-items:center;justify-content:space-between;gap:16px;position:sticky;top:0;z-index:200;box-shadow:0 2px 20px rgba(0,0,0,.5)}
+.header-left{display:flex;align-items:center;gap:14px}
+.logo{font-family:'Fraunces',serif;font-size:20px;font-weight:500;color:var(--text);letter-spacing:-.01em}
+.logo span{color:var(--accent)}
+.hd{width:1px;height:22px;background:var(--border-light)}
+.cohort-tag{font-size:11px;font-family:'DM Mono',monospace;letter-spacing:.06em;color:var(--text-3);padding:3px 9px;border-radius:20px;border:1px solid var(--border-light);background:var(--surface2)}
+.header-right{display:flex;align-items:center;gap:10px}
+.refresh-status{font-size:11px;font-family:'DM Mono',monospace;color:var(--text-3);display:none}
+.refresh-status.show{display:block}
+.hbtn{padding:6px 14px;border-radius:var(--radius-sm);font-size:12px;font-family:'DM Sans',sans-serif;font-weight:500;cursor:pointer;border:1px solid var(--border-light);background:var(--surface2);color:var(--text-2);transition:all .15s}
+.hbtn:hover{border-color:var(--accent);color:var(--accent)}
+.hbtn-accent{background:var(--accent);color:#fff;border-color:var(--accent)}
+.hbtn-accent:hover{background:#4a7de0;border-color:#4a7de0;color:#fff}
+.hbtn:disabled{opacity:.45;cursor:not-allowed}
+
+/* ── Layout ── */
+.layout{display:flex;min-height:calc(100vh - 60px)}
+
+/* ── Sidebar ── */
+.sidebar{width:220px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);padding:18px 10px;position:sticky;top:60px;height:calc(100vh - 60px);overflow-y:auto;display:flex;flex-direction:column;gap:2px}
+.sb-section{font-size:10px;font-family:'DM Mono',monospace;letter-spacing:.1em;text-transform:uppercase;color:var(--text-3);padding:0 8px;margin:14px 0 5px}
+.sb-section:first-child{margin-top:0}
+.sb-btn{display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:var(--radius-sm);cursor:pointer;color:var(--text-2);font-size:13px;transition:all .15s;border:1px solid transparent;background:none;width:100%;text-align:left}
+.sb-btn:hover{background:var(--surface2);color:var(--text)}
+.sb-btn.active{background:var(--accent-dim);color:var(--accent);border-color:rgba(91,141,238,.2);font-weight:500}
+.sb-icon{width:16px;height:16px;flex-shrink:0;opacity:.7}
+.sb-btn.active .sb-icon{opacity:1}
+
+/* ── Main ── */
+.main{flex:1;padding:24px 28px;min-width:0}
+
+/* ── Pages ── */
+.page{display:none}.page.active{display:block}
+
+/* ── Metrics row ── */
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
+.metric{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px}
+.metric-label{font-size:10px;font-family:'DM Mono',monospace;letter-spacing:.07em;text-transform:uppercase;color:var(--text-3);margin-bottom:8px}
+.metric-val{font-size:28px;font-weight:600;color:var(--text);font-family:'Fraunces',serif;line-height:1}
+.metric-sub{font-size:11px;color:var(--text-3);margin-top:5px}
+.metric-bar{height:3px;background:var(--border);border-radius:2px;margin-top:10px;overflow:hidden}
+.metric-bar-fill{height:3px;background:var(--accent);border-radius:2px}
+
+/* ── Section header ── */
+.sec-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--border)}
+.sec-title{font-family:'Fraunces',serif;font-size:20px;font-weight:500;color:var(--text)}
+.sec-sub{font-size:12px;color:var(--text-3);margin-top:2px}
+
+/* ── Mentor grid ── */
+.mentor-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+
+/* ── Mentor card ── */
+.mentor-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;transition:all .2s;cursor:pointer}
+.mentor-card:hover{border-color:var(--border-light);box-shadow:var(--shadow);transform:translateY(-1px)}
+.mentor-card.selected{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-glow)}
+.mc-top-bar{height:3px;background:var(--border)}
+.mc-top-fill{height:3px;background:var(--accent);transition:width .4s}
+.mc-body{padding:16px}
+.mc-head{display:flex;align-items:center;gap:11px;margin-bottom:12px}
+.mc-avatar{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;flex-shrink:0;font-family:'Fraunces',serif}
+.mc-name{font-size:14px;font-weight:500;color:var(--text)}
+.mc-meta{font-size:11px;color:var(--text-3);margin-top:1px;font-family:'DM Mono',monospace}
+.mc-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:10px}
+.mc-stat{background:var(--surface2);border-radius:var(--radius-xs);padding:6px 8px;text-align:center}
+.mc-stat-val{font-size:15px;font-weight:600;color:var(--text);font-family:'Fraunces',serif}
+.mc-stat-label{font-size:9px;color:var(--text-3);font-family:'DM Mono',monospace;letter-spacing:.05em;text-transform:uppercase}
+.mc-footer{display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)}
+.flag{font-size:11px;font-weight:500;padding:3px 9px;border-radius:20px;font-family:'DM Mono',monospace}
+.flag-green{background:var(--green-dim);color:var(--green)}
+.flag-amber{background:var(--amber-dim);color:var(--amber)}
+.flag-red{background:var(--red-dim);color:var(--red)}
+.mc-sync-time{font-size:10px;color:var(--text-3);font-family:'DM Mono',monospace}
+.mc-pending{font-size:10px;color:var(--amber);font-family:'DM Mono',monospace}
+
+/* ── Detail panel ── */
+.detail-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-top:20px;overflow:hidden;box-shadow:var(--shadow)}
+.dp-header{background:var(--surface2);border-bottom:1px solid var(--border);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.dp-header-left{display:flex;align-items:center;gap:12px}
+.dp-title{font-size:15px;font-weight:600;color:var(--text)}
+.dp-sub{font-size:12px;color:var(--text-3);margin-top:1px}
+.view-only-badge{font-size:10px;font-family:'DM Mono',monospace;padding:3px 8px;border-radius:20px;background:var(--green-dim);color:var(--green);border:1px solid rgba(52,201,138,.2)}
+.dp-tabs{display:flex;border-bottom:1px solid var(--border);padding:0 20px}
+.dp-tab{padding:11px 14px;font-size:13px;font-family:'DM Sans',sans-serif;background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;color:var(--text-3);margin-bottom:-1px;transition:all .15s}
+.dp-tab:hover{color:var(--text-2)}
+.dp-tab.active{color:var(--accent);border-bottom-color:var(--accent);font-weight:500}
+.dp-body{padding:20px}
+.dp-section{display:none}.dp-section.active{display:block}
+
+/* ── Trainee list in detail ── */
+.trainee-list{display:flex;flex-direction:column;gap:10px}
+.trainee-row{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 14px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:all .15s}
+.trainee-row:hover{border-color:var(--border-light)}
+.tr-avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex-shrink:0;font-family:'Fraunces',serif}
+.tr-name{font-size:13px;font-weight:500;color:var(--text);flex:1}
+.tr-meta{font-size:11px;color:var(--text-3);font-family:'DM Mono',monospace;margin-top:1px}
+.tr-pct{font-size:18px;font-weight:600;color:var(--accent);font-family:'Fraunces',serif}
+.tr-bar{height:3px;background:var(--border);border-radius:2px;width:70px;margin-top:5px;overflow:hidden}
+.tr-bar-fill{height:3px;background:var(--accent);border-radius:2px}
+.tr-pending{font-size:10px;color:var(--amber);font-family:'DM Mono',monospace;margin-top:2px}
+
+/* ── Mentee detail drawer ── */
+.mentee-drawer{display:none;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-top:10px;overflow:hidden}
+.mentee-drawer.open{display:block}
+.md-header{background:var(--surface3);border-bottom:1px solid var(--border);padding:12px 16px;display:flex;align-items:center;justify-content:space-between}
+.md-title{font-size:13px;font-weight:500;color:var(--text)}
+.md-close{background:none;border:none;color:var(--text-3);cursor:pointer;font-size:16px;padding:2px 6px;border-radius:4px;transition:color .15s}
+.md-close:hover{color:var(--text)}
+.md-body{padding:14px 16px}
+.md-itabs{display:flex;gap:6px;margin-bottom:14px}
+.md-itab{padding:5px 14px;border-radius:20px;font-size:12px;font-family:'DM Sans',sans-serif;font-weight:500;cursor:pointer;border:1px solid var(--border-light);background:var(--surface2);color:var(--text-2);transition:all .15s}
+.md-itab:hover{border-color:var(--accent);color:var(--accent)}
+.md-itab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+/* ── Activity in detail ── */
+.act-item{border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:8px;overflow:hidden}
+.act-item-head{display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;background:var(--surface2);transition:background .15s;flex-wrap:wrap}
+.act-item-head:hover{background:var(--surface3)}
+.act-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.act-name{font-size:13px;font-weight:500;color:var(--text);flex:1;min-width:140px}
+.act-pct-txt{font-size:11px;color:var(--text-3);font-family:'DM Mono',monospace}
+.mini-bar{width:60px;height:3px;background:var(--border);border-radius:2px;overflow:hidden;flex-shrink:0}
+.mini-fill{height:3px;background:var(--accent);border-radius:2px}
+.act-chip{font-size:10px;padding:2px 8px;border-radius:20px;font-family:'DM Mono',monospace;font-weight:500;white-space:nowrap}
+.chip-review{background:var(--amber-dim);color:var(--amber)}
+.chip-scored{background:var(--green-dim);color:var(--green)}
+.chip-none{background:var(--surface3);color:var(--text-3);border:1px solid var(--border)}
+.act-chevron{font-size:10px;color:var(--text-3);transition:transform .2s}
+.act-chevron.open{transform:rotate(180deg)}
+.act-item-body{display:none;border-top:1px solid var(--border)}
+.act-item-body.open{display:block}
+
+/* ── Checklist in detail (view-only) ── */
+.phase-section{padding:12px 14px 0}
+.phase-section:last-child{padding-bottom:12px}
+.phase-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.phase-tag{font-size:10px;font-family:'DM Mono',monospace;letter-spacing:.07em;text-transform:uppercase;font-weight:500;padding:2px 8px;border-radius:20px}
+.pt-before{background:var(--accent-dim);color:var(--accent);border:1px solid rgba(91,141,238,.2)}
+.pt-during{background:var(--amber-dim);color:var(--amber);border:1px solid rgba(245,166,35,.2)}
+.pt-after{background:var(--green-dim);color:var(--green);border:1px solid rgba(52,201,138,.2)}
+.phase-count{font-size:10px;color:var(--text-3);font-family:'DM Mono',monospace}
+.check-item{display:flex;align-items:flex-start;gap:10px;padding:6px 0;border-bottom:1px solid var(--border)}
+.check-item:last-child{border-bottom:none}
+.check-box{width:14px;height:14px;border-radius:3px;border:1.5px solid var(--border-light);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px}
+.check-box.done{background:var(--accent);border-color:var(--accent)}
+.check-box.approved{background:var(--green);border-color:var(--green)}
+.check-label-wrap{flex:1;min-width:0}
+.check-label{font-size:12px;color:var(--text);line-height:1.5}
+.check-label.done{color:var(--text-3);text-decoration:line-through}
+.check-sub{font-size:10px;color:var(--text-3);font-family:'DM Mono',monospace;margin-top:1px}
+.check-score{font-size:11px;color:var(--amber);flex-shrink:0}
+.mentee-remark{font-size:11px;color:var(--text-2);font-style:italic;background:var(--surface3);border-radius:4px;padding:4px 8px;margin-top:4px}
+.mentor-remark{font-size:11px;color:var(--purple);font-style:italic;background:var(--purple-dim);border-radius:4px;padding:4px 8px;margin-top:3px}
+.file-chip{display:inline-flex;align-items:center;gap:4px;font-size:10px;color:var(--accent);text-decoration:none;padding:2px 7px;border:1px solid rgba(91,141,238,.2);border-radius:20px;background:var(--accent-dim);margin-top:4px;margin-right:4px}
+.file-chip:hover{background:var(--accent);color:#fff}
+
+/* ── Comments tab ── */
+.comment-form{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px;margin-bottom:16px}
+.comment-form-label{font-size:11px;font-family:'DM Mono',monospace;letter-spacing:.07em;text-transform:uppercase;color:var(--text-3);margin-bottom:8px}
+.comment-textarea{width:100%;background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius-sm);padding:10px 12px;font-size:13px;font-family:'DM Sans',sans-serif;color:var(--text);resize:vertical;min-height:80px;outline:none;transition:border-color .15s;line-height:1.5}
+.comment-textarea:focus{border-color:var(--accent)}
+.comment-textarea::placeholder{color:var(--text-3)}
+.comment-controls{display:flex;align-items:center;justify-content:space-between;margin-top:10px;flex-wrap:wrap;gap:8px}
+.comment-type-toggle{display:flex;gap:6px}
+.type-btn{padding:5px 12px;border-radius:20px;font-size:11px;font-family:'DM Sans',sans-serif;cursor:pointer;border:1px solid var(--border-light);background:var(--surface);color:var(--text-2);transition:all .15s}
+.type-btn:hover{border-color:var(--accent);color:var(--accent)}
+.type-btn.active-internal{background:var(--purple-dim);color:var(--purple);border-color:rgba(167,139,250,.3)}
+.type-btn.active-mentor{background:var(--accent-dim);color:var(--accent);border-color:rgba(91,141,238,.3)}
+.post-btn{padding:6px 16px;border-radius:var(--radius-sm);font-size:12px;font-family:'DM Sans',sans-serif;font-weight:500;cursor:pointer;border:none;background:var(--accent);color:#fff;transition:background .15s}
+.post-btn:hover{background:#4a7de0}
+.post-btn:disabled{opacity:.5;cursor:not-allowed}
+
+.comment-list{display:flex;flex-direction:column;gap:10px}
+.comment-item{border-radius:var(--radius-sm);padding:12px 14px;border:1px solid}
+.comment-internal{background:var(--purple-dim);border-color:rgba(167,139,250,.2)}
+.comment-mentor{background:var(--accent-dim);border-color:rgba(91,141,238,.2)}
+.comment-meta{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.comment-badge{font-size:9px;font-family:'DM Mono',monospace;letter-spacing:.07em;text-transform:uppercase;font-weight:500;padding:2px 7px;border-radius:20px}
+.badge-internal{background:var(--purple-dim);color:var(--purple);border:1px solid rgba(167,139,250,.3)}
+.badge-mentor{background:var(--accent-dim);color:var(--accent);border:1px solid rgba(91,141,238,.3)}
+.comment-time{font-size:10px;color:var(--text-3);font-family:'DM Mono',monospace}
+.comment-text{font-size:13px;color:var(--text);line-height:1.6}
+.no-comments{text-align:center;padding:30px;color:var(--text-3);font-size:13px}
+
+/* ── Progress table ── */
+.prog-table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+table{width:100%;border-collapse:collapse}
+th{font-size:10px;font-family:'DM Mono',monospace;letter-spacing:.07em;text-transform:uppercase;color:var(--text-3);padding:12px 16px;text-align:left;background:var(--surface2);border-bottom:1px solid var(--border);font-weight:500}
+td{padding:12px 16px;border-bottom:1px solid var(--border);font-size:13px;color:var(--text);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--surface2)}
+.td-mentor{display:flex;align-items:center;gap:10px}
+.td-mini-bar{display:flex;align-items:center;gap:7px}
+
+/* ── Empty state ── */
+.empty{text-align:center;padding:60px 20px;color:var(--text-3)}
+.empty-icon{font-size:36px;margin-bottom:12px}
+.empty-title{font-size:15px;font-weight:500;color:var(--text-2);margin-bottom:6px}
+.empty-sub{font-size:13px}
+
+/* ── Toast ── */
+#toast{position:fixed;bottom:24px;right:24px;background:var(--surface);border:1px solid var(--border-light);color:var(--text);padding:10px 18px;border-radius:var(--radius-sm);font-size:13px;z-index:999;box-shadow:var(--shadow-lg);opacity:0;transition:opacity .3s;pointer-events:none;max-width:340px}
+
+/* ── Setup overlay ── */
+.setup-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:500;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+.setup-overlay.open{display:flex}
+.setup-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:32px 36px;width:100%;max-width:400px;box-shadow:var(--shadow-lg);text-align:center}
+.setup-logo{font-family:'Fraunces',serif;font-size:26px;font-weight:500;color:var(--accent);margin-bottom:4px}
+.setup-sub{font-size:12px;color:var(--text-3);margin-bottom:24px;line-height:1.6}
+.setup-form{display:flex;flex-direction:column;gap:14px;text-align:left}
+.setup-label{font-size:11px;font-weight:500;color:var(--text-2);margin-bottom:4px;display:block;font-family:'DM Mono',monospace;letter-spacing:.07em;text-transform:uppercase}
+.setup-input{width:100%;font-size:14px;padding:10px 12px;border:1px solid var(--border-light);border-radius:var(--radius-sm);background:var(--surface2);color:var(--text);font-family:'DM Sans',sans-serif;outline:none;transition:border-color .15s}
+.setup-input:focus{border-color:var(--accent)}
+.setup-btn{width:100%;padding:11px;border-radius:var(--radius-sm);font-size:14px;font-family:'DM Sans',sans-serif;font-weight:500;cursor:pointer;border:none;background:var(--accent);color:#fff;margin-top:4px;transition:background .15s}
+.setup-btn:hover{background:#4a7de0}
+
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border-light);border-radius:3px}
+</style>
+</head>
+<body>
+
+<!-- Setup overlay -->
+<div class="setup-overlay" id="setupOverlay">
+  <div class="setup-card">
+    <div class="setup-logo">FETP Lead</div>
+    <div class="setup-sub">27th Cohort · FETP-Frontline for Veterinary<br>Enter your name to get started</div>
+    <div class="setup-form">
+      <div><label class="setup-label">Your full name</label><input class="setup-input" id="setupName" placeholder="e.g. Dr. Sarah Ahmed"></div>
+      <button class="setup-btn" onclick="saveSetup()">Open dashboard</button>
+    </div>
+  </div>
+</div>
+
+<header class="header">
+  <div class="header-left">
+    <div class="logo">FETP <span>Lead</span></div>
+    <div class="hd"></div>
+    <div class="cohort-tag">27th Cohort · Frontline for Veterinary</div>
+  </div>
+  <div class="header-right">
+    <div class="refresh-status" id="refreshStatus">Refreshed <span id="refreshTime">—</span></div>
+    <button class="hbtn hbtn-accent" id="refreshBtn" onclick="refreshFromSheet()">↻ Refresh from Sheet</button>
+    <button class="hbtn" onclick="openSetup()">⚙ <span id="leadNameTag">Settings</span></button>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="sidebar">
+    <div class="sb-section">Views</div>
+    <button class="sb-btn active" id="navRoster" onclick="showPage('roster',this)">
+      <svg class="sb-icon" viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="1" width="6" height="6" rx="1.5"/><rect x="9" y="1" width="6" height="6" rx="1.5"/><rect x="1" y="9" width="6" height="6" rx="1.5"/><rect x="9" y="9" width="6" height="6" rx="1.5"/></svg>
+      Mentor roster
+    </button>
+    <button class="sb-btn" id="navProgress" onclick="showPage('progress',this)">
+      <svg class="sb-icon" viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="10" width="3" height="5" rx="1"/><rect x="5.5" y="6" width="3" height="9" rx="1"/><rect x="10" y="2" width="3" height="13" rx="1"/></svg>
+      Progress table
+    </button>
+    <div class="sb-section">Program</div>
+    <button class="sb-btn" id="navComments" onclick="showPage('comments',this)">
+      <svg class="sb-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M2 2h12a1 1 0 011 1v7a1 1 0 01-1 1H9l-3 3v-3H2a1 1 0 01-1-1V3a1 1 0 011-1z"/></svg>
+      All comments
+    </button>
+  </nav>
+
+  <main class="main">
+
+    <!-- Roster page -->
+    <div class="page active" id="page-roster">
+      <div class="metrics" id="metricsRow"></div>
+      <div class="sec-head">
+        <div>
+          <div class="sec-title">Mentor Roster</div>
+          <div class="sec-sub">Click a card to view detail and add comments</div>
+        </div>
+      </div>
+      <div class="mentor-grid" id="mentorGrid"></div>
+      <div id="detailPanel"></div>
+    </div>
+
+    <!-- Progress table page -->
+    <div class="page" id="page-progress">
+      <div class="sec-head"><div><div class="sec-title">Progress Overview</div><div class="sec-sub">All mentors at a glance</div></div></div>
+      <div class="prog-table-wrap">
+        <table>
+          <thead><tr>
+            <th>Mentor</th><th>Sector</th><th>Mentees</th>
+            <th>Overall avg</th><th>Pending reviews</th><th>Last sync</th><th>Status</th>
+          </tr></thead>
+          <tbody id="progBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- All comments page -->
+    <div class="page" id="page-comments">
+      <div class="sec-head"><div><div class="sec-title">All Comments</div><div class="sec-sub">Comments sent to mentors and internal notes</div></div></div>
+      <div id="allCommentsList"></div>
+    </div>
+
+  </main>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ── Config ───────────────────────────────────────────────────
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwEDKsn1DeRoIIxlomLam8p966fIkqTHWYR0S1BXfsFheP-4whDifChpOyroIC8DDc/exec';
+
+// ── Activity definitions ─────────────────────────────────────
+const ACTIVITIES = {
+  fi1:[
+    {id:'fi1a1',title:'Weekly surveillance summary report',phases:{
+      before:['Identify diseases to track','Understand blanks vs zero reporting','Determine which diseases to graph','Plan to obtain 3 weeks of historical data','Develop a time management plan','Consider workshop goals while planning'],
+      during:['Check data completeness and accuracy','Find ways to increase facility response','Ensure zero reporting for reportable diseases','Develop graphs and charts','Calculate case fatality rates accurately','Make conclusions based on data','Monitor quality with Scorecard'],
+      after:['Take action for reportable diseases','Identify noteworthy events for report','Summarise quality and timeliness of reporting','Set public health recommendation priorities','Finalise figures for Workshop 2','Ensure presentation is under 30 minutes','Assess quality with Scorecard and feedback']}},
+    {id:'fi1a2',title:'Data quality audit & SWOT analysis',phases:{
+      before:['Identify priority audit questions','Understand site visit logistics','Determine best audit methods','Consider workshop goals while planning'],
+      during:['Review activities after first visit','Check logbook review skills','Troubleshoot visit problems','Monitor quality using Scorecard'],
+      after:['Use SWOT tool to analyse findings','Reflect on causes and solutions','Determine how to communicate findings','Prepare Data Quality Audit Report','Prepare oral presentation','Assess quality with Scorecard and feedback']}},
+    {id:'fi1a3',title:'One Health surveillance summary table',phases:{
+      before:['Contact staff from other sector(s)','Obtain data-sharing permissions','Coordinate data format and site visits','Select diseases or conditions','Decide time frame and locations'],
+      during:['Combine data sources','Design tabulation and display','Summarise and analyse data','Monitor quality with Scorecard'],
+      after:['Support report writing','Decide if table goes in Weekly Report','Inform all participating sectors of results','Recommend how table supports decisions','Assess quality with Scorecard and feedback']}},
+    {id:'fi1a4',title:'Display surveillance data',phases:{
+      before:['Discuss importance of displaying data with leadership'],
+      during:['Select tables/graphs/maps for display','Include One Health topics in materials','Monitor quality with Scorecard'],
+      after:['Develop plan for updating materials','Assess quality with Scorecard and feedback']}},
+    {id:'fi1a5',title:'Cross-sector site visit (optional)',phases:{
+      before:['Select site from another sector','Contact other sector mentor','Obtain permissions','Coordinate logistics'],
+      during:['Accompany trainee during visit','Complete site visit form','Meet all key staff','Monitor quality with Scorecard'],
+      after:['Review information collected','Compare surveillance systems','Review trainee report','Assess quality with Scorecard and feedback']}}
+  ],
+  fi2:[
+    {id:'fi2a1',title:'Weekly report + timeliness & completion',phases:{
+      before:['Develop time management plan','Determine diseases to track','Identify cross-sector collaborators'],
+      during:['Check data completeness','Develop graphs and charts','Identify patterns and trends','Make inferences from data','Identify noteworthy events','Finalise the report','Monitor quality with Scorecard'],
+      after:['Distribute report to other sectors','Prepare Workshop 3 presentation','Assess quality with Scorecard and feedback']}},
+    {id:'fi2a2',title:'Surveillance quality problem analysis',phases:{
+      before:['Review SWOT to identify a weakness','Identify personnel to assist','Involve other-sector personnel if needed'],
+      during:['Facilitate problem analysis session','Use fishbone diagram correctly','Apply TPN determination correctly','Develop recommendations','Monitor quality with Scorecard'],
+      after:['Complete analysis and report','Plan stakeholder communication','Identify Workshop 3 key points','Assess quality with Scorecard and feedback']}},
+    {id:'fi2a3',title:'Case investigation',phases:{
+      before:['Interpret suspect surveillance data','Locate case investigation forms','Identify cultural/language barriers'],
+      during:['Review case investigation forms','Contact lab and other sectors','Guide case interviews','Monitor quality with Scorecard'],
+      after:['Develop hypothesis','Determine notification recipients','Develop case report','Assess quality with Scorecard and feedback','Identify Workshop 3 key points']}},
+    {id:'fi2a4',title:'Outbreak investigation',phases:{
+      before:['Decide if outbreak logbook needed','Decide if formal investigation warranted','Conduct literature review if needed','Clarify trainee role on team','Coordinate with partner agencies'],
+      during:['Follow outbreak investigation steps','Review descriptive epidemiology','Ensure hypothesis has outcome and exposure','Monitor quality with Scorecard'],
+      after:['Develop investigation report','Summarise recommendations','Determine communication methods','Identify Workshop 3 key points','Evaluate teamwork with Scorecard']}}
+  ]
+};
+function allActs(){return[...ACTIVITIES.fi1,...ACTIVITIES.fi2]}
+
+// ── State ────────────────────────────────────────────────────
+const AVATARS=[
+  {bg:'#1a2a3a',color:'#5b8dee'},{bg:'#1a2a22',color:'#34c98a'},
+  {bg:'#2a2210',color:'#f5a623'},{bg:'#2a1a1a',color:'#f06060'},
+  {bg:'#221a2a',color:'#a78bfa'},{bg:'#1a2a2a',color:'#34c9c9'},
+  {bg:'#2a1a20',color:'#f06090'},{bg:'#1a2210',color:'#90c934'}
+];
+function av(i){return AVATARS[i%AVATARS.length]}
+function initials(n){return(n||'').split(' ').filter(Boolean).map(w=>w[0]).join('').slice(0,2).toUpperCase()||'?'}
+
+let lead = {name:''};
+// Normalize pct: sheet may store 0.26 (decimal) or 26 (integer)
+function normPct(val){
+  const n = parseFloat(val) || 0;
+  return n > 0 && n <= 1 ? Math.round(n * 100) : Math.round(n);
+}
+
+let mentors = [];
+let localComments = {}; // mentorName -> [{text, isInternal, ts, leadName}]
+let selectedMentor = null;
+let dpTab = 'mentees';
+let openMenteeDrawer = null; // {mentorIdx, menteeIdx, interval}
+let selectedMenteeInterval = {};
+
+// ── Toast ────────────────────────────────────────────────────
+function showToast(msg){
+  const el=document.getElementById('toast');el.textContent=msg;el.style.opacity='1';
+  clearTimeout(el._t);el._t=setTimeout(()=>el.style.opacity='0',3000);
+}
+
+// ── Setup ────────────────────────────────────────────────────
+function saveSetup(){
+  const name=document.getElementById('setupName').value.trim();
+  if(!name){alert('Please enter your name.');return;}
+  lead.name=name;
+  document.getElementById('leadNameTag').textContent=name;
+  document.getElementById('setupOverlay').classList.remove('open');
+  saveLocal();showToast('Welcome, '+name+'!');
+}
+function openSetup(){
+  document.getElementById('setupName').value=lead.name;
+  document.getElementById('setupOverlay').classList.add('open');
+}
+
+// ── Page navigation ──────────────────────────────────────────
+function showPage(id,btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.sb-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  if(btn)btn.classList.add('active');
+  if(id==='progress')renderProgTable();
+  if(id==='comments')renderAllComments();
+}
+
+// ── Metrics ──────────────────────────────────────────────────
+function updateMetrics(){
+  const total=mentors.length;
+  const allPcts=mentors.map(m=>normPct(m.overallPct));
+  const avg=total?Math.round(allPcts.reduce((s,v)=>s+v,0)/total):0;
+  const onTrack=allPcts.filter(v=>v>=50).length;
+  const totalPending=mentors.reduce((s,m)=>s+countPending(m),0);
+  document.getElementById('metricsRow').innerHTML=`
+    <div class="metric"><div class="metric-label">Total mentors</div><div class="metric-val">${total}</div><div class="metric-sub">in cohort</div></div>
+    <div class="metric"><div class="metric-label">Avg completion</div><div class="metric-val">${avg}%</div><div class="metric-sub">across all mentees</div><div class="metric-bar"><div class="metric-bar-fill" style="width:${avg}%"></div></div></div>
+    <div class="metric"><div class="metric-label">On track</div><div class="metric-val">${onTrack}<span style="font-size:16px;color:var(--text-3)">/${total}</span></div><div class="metric-sub">mentors ≥ 50%</div></div>
+    <div class="metric"><div class="metric-label">Pending reviews</div><div class="metric-val" style="color:${totalPending>0?'var(--amber)':'var(--text)'}">${totalPending}</div><div class="metric-sub">items awaiting mentor score</div></div>`;
+}
+
+function countPending(m){
+  let n=0;
+  (m.mentees||[]).forEach(t=>{
+    allActs().forEach(act=>{
+      ['before','during','after'].forEach(ph=>{
+        (act.phases[ph]||[]).forEach((_,i)=>{
+          const k=act.id+'_'+ph+'_'+i;
+          const itm=t.checklists&&t.checklists[k];
+          if(itm&&itm.checked&&!itm.approved)n++;
+        });
+      });
+    });
+  });
+  return n;
+}
+
+function menteeProgress(t,interval){
+  if(!interval){
+    return Math.round((menteeProgress(t,'fi1')+menteeProgress(t,'fi2'))/2);
+  }
+  const acts=ACTIVITIES[interval];
+  let total=0,done=0;
+  acts.forEach(act=>['before','during','after'].forEach(ph=>(act.phases[ph]||[]).forEach((_,i)=>{
+    total++;
+    const k=act.id+'_'+ph+'_'+i;
+    if(t.checklists&&t.checklists[k]&&t.checklists[k].checked)done++;
+  })));
+  return total?Math.round(done/total*100):0;
+}
+
+function flagFor(m){
+  const p=normPct(m.overallPct);
+  if(p>=60)return{cls:'flag-green',label:'On track'};
+  if(p>=30)return{cls:'flag-amber',label:'Monitor'};
+  return{cls:'flag-red',label:'Needs attention'};
+}
+
+// ── Render grid ──────────────────────────────────────────────
+function renderGrid(){
+  const grid=document.getElementById('mentorGrid');
+  grid.innerHTML='';
+  if(!mentors.length){
+    grid.innerHTML='<div class="empty" style="grid-column:1/-1"><div class="empty-icon">📡</div><div class="empty-title">No data yet</div><div class="empty-sub">Click ↻ Refresh from Sheet to load mentor data.</div></div>';
+    return;
+  }
+  mentors.forEach((m,idx)=>{
+    const pct=normPct(m.overallPct);
+    const flag=flagFor(m);
+    const pending=countPending(m);
+    const a=av(idx);
+    const lastSyncStr=m.lastSync?formatSyncTime(m.lastSync):'Never synced';
+    const card=document.createElement('div');
+    card.className='mentor-card'+(selectedMentor===idx?' selected':'');
+    card.onclick=()=>selectMentor(idx);
+    card.innerHTML=`
+      <div class="mc-top-bar"><div class="mc-top-fill" style="width:${pct}%"></div></div>
+      <div class="mc-body">
+        <div class="mc-head">
+          <div class="mc-avatar" style="background:${a.bg};color:${a.color}">${initials(m.name)}</div>
+          <div>
+            <div class="mc-name">${m.name}</div>
+            <div class="mc-meta">${m.sector||'—'} · ${(m.mentees||[]).length} mentee${(m.mentees||[]).length!==1?'s':''}</div>
+          </div>
+        </div>
+        <div class="mc-stats">
+          <div class="mc-stat"><div class="mc-stat-val">${pct}%</div><div class="mc-stat-label">Overall</div></div>
+          <div class="mc-stat"><div class="mc-stat-val">${(m.mentees||[]).length}</div><div class="mc-stat-label">Mentees</div></div>
+          <div class="mc-stat"><div class="mc-stat-val" style="color:${pending>0?'var(--amber)':'var(--text)'}">${pending}</div><div class="mc-stat-label">Pending</div></div>
+        </div>
+        <div class="mc-footer">
+          <span class="flag ${flag.cls}">${flag.label}</span>
+          <div style="text-align:right">
+            <div class="mc-sync-time">⏱ ${lastSyncStr}</div>
+            ${pending>0?`<div class="mc-pending">⚠ ${pending} to review</div>`:''}
+          </div>
+        </div>
+      </div>`;
+    grid.appendChild(card);
+  });
+}
+
+function formatSyncTime(iso){
+  if(!iso)return'—';
+  try{
+    const d=new Date(iso);
+    const now=new Date();
+    const diff=Math.floor((now-d)/60000);
+    if(diff<1)return'Just now';
+    if(diff<60)return diff+'m ago';
+    if(diff<1440)return Math.floor(diff/60)+'h ago';
+    return d.toLocaleDateString();
+  }catch(e){return iso;}
+}
+
+// ── Select mentor ────────────────────────────────────────────
+function selectMentor(idx){
+  selectedMentor=idx;dpTab='mentees';openMenteeDrawer=null;
+  renderGrid();renderDetail();
+  setTimeout(()=>{
+    const panel=document.getElementById('detailPanel');
+    if(panel)panel.scrollIntoView({behavior:'smooth',block:'nearest'});
+  },100);
+}
+
+function renderDetail(){
+  const panel=document.getElementById('detailPanel');
+  if(selectedMentor===null){panel.innerHTML='';return;}
+  const m=mentors[selectedMentor];
+  const a=av(selectedMentor);
+  const pct=normPct(m.overallPct);
+  const comments=getAllCommentsForMentor(m.name);
+
+  panel.innerHTML=`
+    <div class="detail-panel">
+      <div class="dp-header">
+        <div class="dp-header-left">
+          <div class="mc-avatar" style="background:${a.bg};color:${a.color};width:34px;height:34px;font-size:12px">${initials(m.name)}</div>
+          <div>
+            <div class="dp-title">${m.name}</div>
+            <div class="dp-sub">${m.sector||'—'} · Last sync: ${formatSyncTime(m.lastSync)}</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <span class="view-only-badge">● View only</span>
+          <button class="hbtn" onclick="closeDetail()">Close ✕</button>
+        </div>
+      </div>
+      <div class="dp-tabs">
+        <button class="dp-tab${dpTab==='mentees'?' active':''}" onclick="switchDpTab('mentees')">Mentees & activities</button>
+        <button class="dp-tab${dpTab==='comments'?' active':''}" onclick="switchDpTab('comments')">Comments <span style="font-size:10px;background:var(--accent-dim);color:var(--accent);padding:1px 6px;border-radius:20px;margin-left:4px">${comments.length}</span></button>
+      </div>
+      <div class="dp-body">
+        <div class="dp-section${dpTab==='mentees'?' active':''}" id="dps-mentees">${buildMenteesTab(m,selectedMentor)}</div>
+        <div class="dp-section${dpTab==='comments'?' active':''}" id="dps-comments">${buildCommentsTab(m)}</div>
+      </div>
+    </div>`;
+}
+
+function switchDpTab(tab){dpTab=tab;renderDetail();}
+function closeDetail(){selectedMentor=null;renderGrid();document.getElementById('detailPanel').innerHTML='';}
+
+// ── Mentees tab ──────────────────────────────────────────────
+function buildMenteesTab(m,mIdx){
+  if(!m.mentees||!m.mentees.length)return'<div class="empty"><div class="empty-icon">👤</div><div class="empty-title">No mentees yet</div><div class="empty-sub">Mentees appear after they sync their dashboard.</div></div>';
+  let html='<div class="trainee-list">';
+  m.mentees.forEach((t,tIdx)=>{
+    const pct=menteeProgress(t);
+    const fi1=menteeProgress(t,'fi1');
+    const fi2=menteeProgress(t,'fi2');
+    const a2=av(tIdx+3);
+    const pending=countMenteePending(t);
+    const drawerOpen=openMenteeDrawer&&openMenteeDrawer.mIdx===mIdx&&openMenteeDrawer.tIdx===tIdx;
+    html+=`<div>
+      <div class="trainee-row" onclick="toggleMenteeDrawer(${mIdx},${tIdx})">
+        <div class="tr-avatar" style="background:${a2.bg};color:${a2.color}">${initials(t.name)}</div>
+        <div style="flex:1;min-width:0">
+          <div class="tr-name">${t.name}</div>
+          <div class="tr-meta">FI 1: ${fi1}% · FI 2: ${fi2}%${pending>0?' · ⚠ '+pending+' pending':''}</div>
+          ${pending>0?`<div class="tr-pending">⚠ ${pending} items awaiting mentor score</div>`:''}
+        </div>
+        <div style="text-align:right">
+          <div class="tr-pct">${pct}%</div>
+          <div class="tr-bar"><div class="tr-bar-fill" style="width:${pct}%"></div></div>
+        </div>
+        <span style="font-size:11px;color:var(--text-3);margin-left:6px">${drawerOpen?'▲':'▼'}</span>
+      </div>
+      ${drawerOpen?buildMenteeDrawer(t,mIdx,tIdx):'<div class="mentee-drawer" id="md-'+mIdx+'-'+tIdx+'"></div>'}
+    </div>`;
+  });
+  html+='</div>';
+  return html;
+}
+
+function countMenteePending(t){
+  let n=0;
+  allActs().forEach(act=>['before','during','after'].forEach(ph=>(act.phases[ph]||[]).forEach((_,i)=>{
+    const k=act.id+'_'+ph+'_'+i;
+    const itm=t.checklists&&t.checklists[k];
+    if(itm&&itm.checked&&!itm.approved)n++;
+  })));
+  return n;
+}
+
+function toggleMenteeDrawer(mIdx,tIdx){
+  if(openMenteeDrawer&&openMenteeDrawer.mIdx===mIdx&&openMenteeDrawer.tIdx===tIdx){
+    openMenteeDrawer=null;
+  } else {
+    openMenteeDrawer={mIdx,tIdx};
+    if(!selectedMenteeInterval[mIdx+'_'+tIdx])selectedMenteeInterval[mIdx+'_'+tIdx]='fi1';
+  }
+  const dps=document.getElementById('dps-mentees');
+  if(dps)dps.innerHTML=buildMenteesTab(mentors[mIdx],mIdx);
+}
+
+function switchMenteeInterval(mIdx,tIdx,interval){
+  selectedMenteeInterval[mIdx+'_'+tIdx]=interval;
+  const dps=document.getElementById('dps-mentees');
+  if(dps)dps.innerHTML=buildMenteesTab(mentors[mIdx],mIdx);
+}
+
+function buildMenteeDrawer(t,mIdx,tIdx){
+  const iv=selectedMenteeInterval[mIdx+'_'+tIdx]||'fi1';
+  let html=`<div class="mentee-drawer open" id="md-${mIdx}-${tIdx}">
+    <div class="md-header">
+      <div class="md-title">${t.name} — activities</div>
+    </div>
+    <div class="md-body">
+      <div class="md-itabs">
+        <button class="md-itab${iv==='fi1'?' active':''}" onclick="switchMenteeInterval(${mIdx},${tIdx},'fi1')">Field Interval 1</button>
+        <button class="md-itab${iv==='fi2'?' active':''}" onclick="switchMenteeInterval(${mIdx},${tIdx},'fi2')">Field Interval 2</button>
+      </div>`;
+  ACTIVITIES[iv].forEach(act=>{
+    const pct=calcActPct(t,act);
+    const hasReview=hasItemsPendingReview(t,act);
+    const hasScored=hasItemsScored(t,act);
+    const dotColor=pct===100?'var(--green)':pct>0?'var(--accent)':'var(--border-light)';
+    const chip=hasReview?'<span class="act-chip chip-review">⚠ Pending review</span>':hasScored?'<span class="act-chip chip-scored">✓ Scored</span>':'<span class="act-chip chip-none">Not submitted</span>';
+    html+=`<div class="act-item">
+      <div class="act-item-head" onclick="toggleActInDrawer('${mIdx}_${tIdx}_${act.id}')">
+        <div class="act-dot" style="background:${dotColor}"></div>
+        <span class="act-name">${act.title}</span>
+        <span class="act-pct-txt">${pct}%</span>
+        <div class="mini-bar"><div class="mini-fill" style="width:${pct}%"></div></div>
+        ${chip}
+        <span class="act-chevron" id="achev-${mIdx}_${tIdx}_${act.id}">▼</span>
+      </div>
+      <div class="act-item-body" id="abody-${mIdx}_${tIdx}_${act.id}">
+        ${buildViewOnlyChecklist(t,act)}
+      </div>
+    </div>`;
+  });
+  html+='</div></div>';
+  return html;
+}
+
+function calcActPct(t,act){
+  let total=0,done=0;
+  ['before','during','after'].forEach(ph=>(act.phases[ph]||[]).forEach((_,i)=>{
+    total++;
+    const k=act.id+'_'+ph+'_'+i;
+    if(t.checklists&&t.checklists[k]&&t.checklists[k].checked)done++;
+  }));
+  return total?Math.round(done/total*100):0;
+}
+
+function hasItemsPendingReview(t,act){
+  return ['before','during','after'].some(ph=>(act.phases[ph]||[]).some((_,i)=>{
+    const k=act.id+'_'+ph+'_'+i;
+    const itm=t.checklists&&t.checklists[k];
+    return itm&&itm.checked&&!itm.approved;
+  }));
+}
+
+function hasItemsScored(t,act){
+  return ['before','during','after'].some(ph=>(act.phases[ph]||[]).some((_,i)=>{
+    const k=act.id+'_'+ph+'_'+i;
+    return t.scores&&t.scores[k]&&t.scores[k].value>0;
+  }));
+}
+
+function buildViewOnlyChecklist(t,act){
+  const phaseNames={before:'Before',during:'During',after:'After'};
+  const phaseCls={before:'pt-before',during:'pt-during',after:'pt-after'};
+  let html='';
+  ['before','during','after'].forEach(ph=>{
+    const items=act.phases[ph]||[];if(!items.length)return;
+    const done=items.filter((_,i)=>t.checklists&&t.checklists[act.id+'_'+ph+'_'+i]?.checked).length;
+    html+=`<div class="phase-section">
+      <div class="phase-row">
+        <span class="phase-tag ${phaseCls[ph]}">${phaseNames[ph]}</span>
+        <span class="phase-count">${done}/${items.length}</span>
+      </div>`;
+    items.forEach((text,i)=>{
+      const k=act.id+'_'+ph+'_'+i;
+      const itm=(t.checklists&&t.checklists[k])||{};
+      const sc=(t.scores&&t.scores[k])||{};
+      const checked=!!itm.checked;
+      const approved=!!itm.approved;
+      const boxCls=approved?'done approved':checked?'done':'';
+      const labelCls=checked?'done':'';
+      const starsHtml=sc.value?'★'.repeat(sc.value)+'☆'.repeat(5-sc.value):'';
+      html+=`<div class="check-item">
+        <div class="check-box ${boxCls}">${checked?'<svg width="9" height="7" viewBox="0 0 9 7" fill="none"><path d="M1 3.5L3.5 6L8 1" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>':''}</div>
+        <div class="check-label-wrap">
+          <div class="check-label ${labelCls}">${text}</div>
+          ${itm.remark?`<div class="mentee-remark">💬 "${itm.remark}"</div>`:''}
+          ${sc.remark?`<div class="mentor-remark">🔖 Mentor: "${sc.remark}"</div>`:''}
+          ${itm.files&&itm.files.length?itm.files.map(f=>f.fileUrl?`<a href="${f.fileUrl}" target="_blank" class="file-chip">📎 ${f.fileName||f.name}</a>`:`<span class="file-chip" style="opacity:.6">📎 ${f.fileName||f.name}</span>`).join(''):''}
+        </div>
+        ${starsHtml?`<div class="check-score" title="Mentor score">${starsHtml}</div>`:''}
+      </div>`;
+    });
+    html+='</div>';
+  });
+  return html||'<div style="padding:12px;font-size:12px;color:var(--text-3)">No items found.</div>';
+}
+
+function toggleActInDrawer(uid){
+  const body=document.getElementById('abody-'+uid);
+  const chev=document.getElementById('achev-'+uid);
+  if(body){const o=body.classList.toggle('open');if(chev)chev.classList.toggle('open',o);}
+}
+
+// ── Comments tab ─────────────────────────────────────────────
+function getAllCommentsForMentor(mentorName){
+  const sheet=(mentors.find(m=>m.name===mentorName)||{}).comments||[];
+  const local=localComments[mentorName]||[];
+  return [...sheet,...local].sort((a,b)=>new Date(b.timestamp||b.ts)-new Date(a.timestamp||a.ts));
+}
+
+function buildCommentsTab(m){
+  const comments=getAllCommentsForMentor(m.name);
+  let html=`<div class="comment-form">
+    <div class="comment-form-label">Add comment for ${m.name}</div>
+    <textarea class="comment-textarea" id="commentInput-${selectedMentor}" placeholder="Write your comment or feedback…"></textarea>
+    <div class="comment-controls">
+      <div class="comment-type-toggle">
+        <button class="type-btn active-internal" id="typeBtnInternal-${selectedMentor}" onclick="setCommentType(${selectedMentor},'internal')">🔒 Internal note</button>
+        <button class="type-btn" id="typeBtnMentor-${selectedMentor}" onclick="setCommentType(${selectedMentor},'mentor')">📨 Send to mentor</button>
+      </div>
+      <button class="post-btn" onclick="postComment(${selectedMentor})">Post comment</button>
+    </div>
+  </div>
+  <div class="comment-list" id="commentList-${selectedMentor}">`;
+
+  if(!comments.length){
+    html+='<div class="no-comments">No comments yet. Add one above.</div>';
+  } else {
+    comments.forEach(c=>{
+      const isInternal=c.isInternal===true||c.isInternal==='YES';
+      const ts=c.timestamp||c.ts;
+      const timeStr=ts?new Date(ts).toLocaleString():'—';
+      html+=`<div class="comment-item ${isInternal?'comment-internal':'comment-mentor'}">
+        <div class="comment-meta">
+          <span class="comment-badge ${isInternal?'badge-internal':'badge-mentor'}">${isInternal?'🔒 Internal':'📨 To mentor'}</span>
+          <span class="comment-time">${timeStr}</span>
+        </div>
+        <div class="comment-text">${c.comment||c.text||''}</div>
+      </div>`;
+    });
+  }
+  html+='</div>';
+
+  // Store current type state
+  if(!window._commentType)window._commentType={};
+  if(!window._commentType[selectedMentor])window._commentType[selectedMentor]='internal';
+
+  return html;
+}
+
+function setCommentType(mIdx,type){
+  if(!window._commentType)window._commentType={};
+  window._commentType[mIdx]=type;
+  const bi=document.getElementById('typeBtnInternal-'+mIdx);
+  const bm=document.getElementById('typeBtnMentor-'+mIdx);
+  if(bi)bi.className='type-btn'+(type==='internal'?' active-internal':'');
+  if(bm)bm.className='type-btn'+(type==='mentor'?' active-mentor':'');
+}
+
+function postComment(mIdx){
+  const m=mentors[mIdx];
+  const input=document.getElementById('commentInput-'+mIdx);
+  const text=(input&&input.value)||'';
+  if(!text.trim()){showToast('Please write a comment first.');return;}
+  const isInternal=(window._commentType&&window._commentType[mIdx])==='internal';
+  const comment={comment:text.trim(),isInternal,timestamp:new Date().toISOString(),leadName:lead.name||'FETP Lead'};
+
+  // Save locally
+  if(!localComments[m.name])localComments[m.name]=[];
+  localComments[m.name].unshift(comment);
+  saveLocal();
+
+  // Sync to Sheet
+  if(SCRIPT_URL&&SCRIPT_URL!=='https://script.google.com/macros/s/AKfycbyplCrJICsBpZLxWfZM4Ha3t_fZCx7Jk0EmvyKNjkh3oAbGozIKJTHQSFuyeLKT915g/exec'){
+    fetch(SCRIPT_URL,{
+      method:'POST',headers:{'Content-Type':'text/plain'},
+      body:JSON.stringify({action:'syncLeadComment',data:{
+        targetType:'mentor',targetName:m.name,
+        comment:text.trim(),isInternal,leadName:lead.name||'FETP Lead'
+      }})
+    }).then(r=>r.json()).then(d=>{
+      if(d.success)showToast(isInternal?'🔒 Internal note saved.':'📨 Comment sent to mentor.');
+      else showToast('Saved locally. Sheet sync failed: '+(d.error||''));
+    }).catch(()=>showToast('Saved locally. Could not sync to Sheet.'));
+  } else {
+    showToast(isInternal?'🔒 Internal note saved locally.':'📨 Comment saved locally.');
+  }
+
+  // Re-render comments tab
+  renderDetail();
+  switchDpTab('comments');
+}
+
+// ── Progress table ────────────────────────────────────────────
+function renderProgTable(){
+  const tbody=document.getElementById('progBody');
+  if(!tbody)return;
+  tbody.innerHTML='';
+  if(!mentors.length){
+    tbody.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--text-3);padding:30px">No data yet — click ↻ Refresh from Sheet</td></tr>';
+    return;
+  }
+  mentors.forEach((m,idx)=>{
+    const pct=normPct(m.overallPct);
+    const flag=flagFor(m);
+    const pending=countPending(m);
+    const a=av(idx);
+    const row=document.createElement('tr');
+    row.style.cursor='pointer';
+    row.onclick=()=>{showPage('roster',document.getElementById('navRoster'));selectMentor(idx);};
+    row.innerHTML=`
+      <td><div class="td-mentor">
+        <div class="mc-avatar" style="background:${a.bg};color:${a.color};width:28px;height:28px;font-size:10px">${initials(m.name)}</div>
+        <span style="font-weight:500">${m.name}</span>
+      </div></td>
+      <td style="color:var(--text-2)">${m.sector||'—'}</td>
+      <td style="color:var(--text-2)">${(m.mentees||[]).length}</td>
+      <td><div class="td-mini-bar"><div class="mini-bar" style="width:80px"><div class="mini-fill" style="width:${pct}%"></div></div><strong>${pct}%</strong></div></td>
+      <td style="color:${pending>0?'var(--amber)':'var(--text-3)'}">${pending>0?'⚠ '+pending+' pending':'—'}</td>
+      <td style="color:var(--text-3);font-family:'DM Mono',monospace;font-size:11px">${formatSyncTime(m.lastSync)}</td>
+      <td><span class="flag ${flag.cls}">${flag.label}</span></td>`;
+    tbody.appendChild(row);
+  });
+}
+
+// ── All comments page ─────────────────────────────────────────
+function renderAllComments(){
+  const container=document.getElementById('allCommentsList');
+  if(!container)return;
+  const all=[];
+  mentors.forEach(m=>{
+    getAllCommentsForMentor(m.name).forEach(c=>{
+      all.push({...c,mentorName:m.name});
+    });
+  });
+  all.sort((a,b)=>new Date(b.timestamp||b.ts)-new Date(a.timestamp||a.ts));
+  if(!all.length){
+    container.innerHTML='<div class="empty"><div class="empty-icon">💬</div><div class="empty-title">No comments yet</div><div class="empty-sub">Open a mentor card and add a comment.</div></div>';
+    return;
+  }
+  container.innerHTML=all.map(c=>{
+    const isInternal=c.isInternal===true||c.isInternal==='YES';
+    const ts=c.timestamp||c.ts;
+    return`<div class="comment-item ${isInternal?'comment-internal':'comment-mentor'}" style="margin-bottom:10px">
+      <div class="comment-meta">
+        <span class="comment-badge ${isInternal?'badge-internal':'badge-mentor'}">${isInternal?'🔒 Internal':'📨 To mentor'}</span>
+        <span style="font-size:12px;font-weight:500;color:var(--text-2)">${c.mentorName}</span>
+        <span class="comment-time">${ts?new Date(ts).toLocaleString():'—'}</span>
+      </div>
+      <div class="comment-text">${c.comment||c.text||''}</div>
+    </div>`;
+  }).join('');
+}
+
+// ── Refresh from Sheet ────────────────────────────────────────
+function refreshFromSheet(){
+  if(!SCRIPT_URL||SCRIPT_URL==='PASTE_YOUR_APPS_SCRIPT_URL_HERE'){
+    alert('Google Sheets sync not configured.\n\nAsk IT to paste the Apps Script URL into this file (look for SCRIPT_URL near the top of the script).');
+    return;
+  }
+  const btn=document.getElementById('refreshBtn');
+  btn.textContent='↻ Refreshing…';btn.disabled=true;
+
+  fetch(SCRIPT_URL+'?action=getAllData')
+    .then(r=>r.json())
+    .then(data=>{
+      if(!data.success)throw new Error(data.error||'Unknown error');
+      // Fully replace mentor list from Sheet
+      mentors=(data.mentors||[]).map((m,i)=>({
+        name:m.name,sector:m.sector,lastSync:m.lastSync,
+        overallPct:normPct(m.overallPct),
+        mentees:m.mentees||[],
+        comments:m.comments||[]
+      }));
+      selectedMentor=null;
+      document.getElementById('detailPanel').innerHTML='';
+      saveLocal();
+      renderGrid();
+      updateMetrics();
+      renderProgTable();
+      const time=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+      const rs=document.getElementById('refreshStatus');
+      if(rs){rs.classList.add('show');document.getElementById('refreshTime').textContent=time;}
+      showToast('✓ Refreshed — '+mentors.length+' mentor(s) loaded.');
+    })
+    .catch(err=>showToast('Refresh failed: '+err.message))
+    .finally(()=>{btn.textContent='↻ Refresh from Sheet';btn.disabled=false;});
+}
+
+// ── Local persistence ─────────────────────────────────────────
+function saveLocal(){
+  try{localStorage.setItem('fetp_lead_v2',JSON.stringify({lead,mentors,localComments}));}catch(e){}
+}
+function loadLocal(){
+  try{
+    const raw=localStorage.getItem('fetp_lead_v2');if(!raw)return false;
+    const d=JSON.parse(raw);if(!d.lead)return false;
+    lead=d.lead||{};mentors=d.mentors||[];localComments=d.localComments||{};
+    return true;
+  }catch(e){return false;}
+}
+
+// ── Init ──────────────────────────────────────────────────────
+if(loadLocal()&&lead.name){
+  document.getElementById('leadNameTag').textContent=lead.name;
+  renderGrid();updateMetrics();
+} else {
+  document.getElementById('setupOverlay').classList.add('open');
+}
+</script>
+</body>
+</html>
