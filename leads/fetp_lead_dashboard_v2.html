@@ -450,7 +450,8 @@ function countPending(m){
         (act.phases[ph]||[]).forEach((_,i)=>{
           const k=act.id+'_'+ph+'_'+i;
           const itm=t.checklists&&t.checklists[k];
-          if(itm&&itm.checked&&!itm.approved)n++;
+          const scored=t.scores&&t.scores[k]&&t.scores[k].value>0;
+          if(itm&&itm.checked&&!itm.approved&&!scored)n++;
         });
       });
     });
@@ -620,7 +621,8 @@ function countMenteePending(t){
   allActs().forEach(act=>['before','during','after'].forEach(ph=>(act.phases[ph]||[]).forEach((_,i)=>{
     const k=act.id+'_'+ph+'_'+i;
     const itm=t.checklists&&t.checklists[k];
-    if(itm&&itm.checked&&!itm.approved)n++;
+    const scored=t.scores&&t.scores[k]&&t.scores[k].value>0;
+    if(itm&&itm.checked&&!itm.approved&&!scored)n++;
   })));
   return n;
 }
@@ -658,7 +660,15 @@ function buildMenteeDrawer(t,mIdx,tIdx){
     const hasReview=hasItemsPendingReview(t,act);
     const hasScored=hasItemsScored(t,act);
     const dotColor=pct===100?'var(--green)':pct>0?'var(--accent)':'var(--border-light)';
-    const chip=hasReview?'<span class="act-chip chip-review">⚠ Pending review</span>':hasScored?'<span class="act-chip chip-scored">✓ Scored</span>':'<span class="act-chip chip-none">Not submitted</span>';
+    // Activity is scored if ALL checked items have scores, pending if some checked items lack scores
+    const checkedKeys=[];
+    ['before','during','after'].forEach(ph=>(act.phases[ph]||[]).forEach((_,i)=>{
+      const k=act.id+'_'+ph+'_'+i;
+      if(t.checklists&&t.checklists[k]&&t.checklists[k].checked)checkedKeys.push(k);
+    }));
+    const allScored=checkedKeys.length>0&&checkedKeys.every(k=>t.scores&&t.scores[k]&&t.scores[k].value>0);
+    const someScored=checkedKeys.some(k=>t.scores&&t.scores[k]&&t.scores[k].value>0);
+    const chip=allScored?'<span class="act-chip chip-scored">✓ Scored</span>':hasReview&&!someScored?'<span class="act-chip chip-review">⚠ Pending review</span>':hasScored||someScored?'<span class="act-chip chip-scored">★ Partially scored</span>':'<span class="act-chip chip-none">Not submitted</span>';
     html+=`<div class="act-item">
       <div class="act-item-head" onclick="toggleActInDrawer('${mIdx}_${tIdx}_${act.id}')">
         <div class="act-dot" style="background:${dotColor}"></div>
