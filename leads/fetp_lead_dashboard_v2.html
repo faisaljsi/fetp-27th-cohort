@@ -928,7 +928,7 @@ function refreshFromSheet(){
       // Fully replace mentor list from Sheet
       mentors=(data.mentors||[]).map((m,i)=>({
         name:m.name,sector:m.sector,lastSync:m.lastSync,
-        overallPct:normPct(m.overallPct),
+        overallPct:m.overallPct,
         mentees:m.mentees||[],
         comments:m.comments||[]
       }));
