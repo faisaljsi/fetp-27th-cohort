@@ -387,8 +387,14 @@ function initials(n){return(n||'').split(' ').filter(Boolean).map(w=>w[0]).join(
 let lead = {name:''};
 // Normalize pct: sheet may store 0.26 (decimal) or 26 (integer)
 function normPct(val){
-  const n = parseFloat(val) || 0;
-  return n > 0 && n <= 1 ? Math.round(n * 100) : Math.round(n);
+  if(val===null||val===undefined||val==='')return 0;
+  // If it's a string with % sign, strip it
+  const s=String(val).replace('%','').trim();
+  const n=parseFloat(s)||0;
+  // Only treat as decimal (0.xx) if the original value was explicitly a float < 1
+  // i.e. has a decimal point and is between 0 and 1
+  if(s.includes('.')&&n>0&&n<1)return Math.round(n*100);
+  return Math.round(n);
 }
 
 let mentors = [];
