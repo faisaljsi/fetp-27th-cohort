@@ -924,6 +924,8 @@ function refreshFromSheet(){
   fetch(SCRIPT_URL+'?action=getAllData')
     .then(r=>r.json())
     .then(data=>{
+      console.log("FULL DATA:", data);
+      console.log("MENTORS:", data.mentors);
       if(!data.success)throw new Error(data.error||'Unknown error');
       // Fully replace mentor list from Sheet
       mentors=(data.mentors||[]).map((m,i)=>({
